@@ -2,10 +2,10 @@ const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true, lowercase: true, trim: true },
-  passwordHash: { type: String, required: true },
-  refreshTokenHash: { type: String, default: null },
-  resetPasswordToken: { type: String, default: null },
-  resetPasswordExpires: { type: Date, default: null }
+  googleId: { type: String, required: true, unique: true },
+  name: { type: String, default: '' },
+  profilePicture: { type: String, default: '' },
+  refreshTokenHash: { type: String, default: null }
 }, { timestamps: true });
 
 const messageSchema = new mongoose.Schema({

@@ -3,9 +3,8 @@ const cors = require('cors');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 const rateLimit = require('express-rate-limit');
-const { body } = require('express-validator');
 const { clientOrigin } = require('./config');
-const { register, login, forgotPassword, resetPassword, refresh, logout } = require('./auth');
+const { passport, googleCallback, refresh, logout } = require('./auth');
 const { postChat, getHistory } = require('./chat');
 const { requireAuth, errorHandler } = require('./middleware');
 const { Mood, Journal } = require('./models');
@@ -15,18 +14,24 @@ app.use(helmet());
 app.use(cors({ origin: clientOrigin, credentials: true }));
 app.use(express.json({ limit: '100kb' }));
 app.use(cookieParser());
+app.use(passport.initialize());
+
 const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 30, standardHeaders: true, legacyHeaders: false });
-const passwordResetLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 3, standardHeaders: true, legacyHeaders: false, message: { message: 'Too many password reset attempts. Please try again later.' } });
 const chatLimiter = rateLimit({ windowMs: 60 * 1000, limit: 12, standardHeaders: true, legacyHeaders: false });
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
-app.post('/api/auth/register', authLimiter, [body('email').isEmail().withMessage('Enter a valid email.'), body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters.')], register);
-app.post('/api/auth/login', authLimiter, [body('email').isEmail().withMessage('Enter a valid email.'), body('password').notEmpty().withMessage('Enter your password.')], login);
-app.post('/api/auth/forgot-password', passwordResetLimiter, [body('email').isEmail().withMessage('Enter a valid email.')], forgotPassword);
-app.post('/api/auth/reset-password/:token', passwordResetLimiter, [body('newPassword').isLength({ min: 8 }).withMessage('Password must be at least 8 characters.')], resetPassword);
+
+// Google OAuth
+app.get('/api/auth/google', authLimiter, passport.authenticate('google', { scope: ['profile', 'email'], session: false, prompt: 'select_account' }));
+app.get('/api/auth/google/callback', authLimiter,
+  passport.authenticate('google', { session: false, failureRedirect: `${clientOrigin}/login?error=auth_failed` }),
+  googleCallback
+);
+
 app.post('/api/auth/refresh', refresh);
 app.post('/api/auth/logout', logout);
 app.get('/api/auth/me', requireAuth, (req, res) => res.json({ user: { id: req.user.id, email: req.user.email } }));
+
 app.get('/api/chat/history', requireAuth, getHistory);
 app.post('/api/chat', requireAuth, chatLimiter, postChat);
 
