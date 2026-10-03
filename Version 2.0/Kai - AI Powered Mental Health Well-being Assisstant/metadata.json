@@ -1,6 +1,0 @@
-{
-  "name": "Kai – AI Mental Wellness Assistant",
-  "description": "A student wellbeing app with English and Hinglish chat, mood check-ins, journaling, breathing tools, and links to public support services.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}
