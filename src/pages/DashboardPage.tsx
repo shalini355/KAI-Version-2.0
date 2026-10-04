@@ -14,8 +14,6 @@ export const DashboardPage: React.FC = () => {
   const [selectedMood, setSelectedMood] = useState<MoodType>('calm');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [isSavedFeedback, setIsSavedFeedback] = useState(false);
-  const [isPlayingRain, setIsPlayingRain] = useState(false);
-  const [isAffirmationLiked, setIsAffirmationLiked] = useState(false);
 
   // Micro breathing widget state
   const [isMiniBreathe, setIsMiniBreathe] = useState(false);
@@ -26,66 +24,6 @@ export const DashboardPage: React.FC = () => {
   const weekData = moodService.getLast7DaysForChart();
   const insights = moodService.getInsights();
   const latestMood = moodEntries[0];
-
-  // Web Audio soft rain / ambient white noise generator
-  useEffect(() => {
-    if (!isPlayingRain) return;
-
-    let audioCtx: AudioContext | null = null;
-    try {
-      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-      audioCtx = new AudioContextClass();
-      const bufferSize = audioCtx.sampleRate * 2;
-      const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-      const output = noiseBuffer.getChannelData(0);
-
-      // Pink-ish / soft rain noise
-      let b0 = 0,
-        b1 = 0,
-        b2 = 0,
-        b3 = 0,
-        b4 = 0,
-        b5 = 0,
-        b6 = 0;
-      for (let i = 0; i < bufferSize; i++) {
-        const white = Math.random() * 2 - 1;
-        b0 = 0.99886 * b0 + white * 0.0555179;
-        b1 = 0.99332 * b1 + white * 0.0750759;
-        b2 = 0.969 * b2 + white * 0.153852;
-        b3 = 0.8665 * b3 + white * 0.3104856;
-        b4 = 0.55 * b4 + white * 0.5329522;
-        b5 = -0.7616 * b5 - white * 0.016898;
-        output[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.04;
-        b6 = white * 0.115926;
-      }
-
-      const whiteNoise = audioCtx.createBufferSource();
-      whiteNoise.buffer = noiseBuffer;
-      whiteNoise.loop = true;
-
-      // Lowpass filter for muffled cozy rain
-      const filter = audioCtx.createBiquadFilter();
-      filter.type = 'lowpass';
-      filter.frequency.value = 800;
-
-      const gainNode = audioCtx.createGain();
-      gainNode.gain.value = 0.15;
-
-      whiteNoise.connect(filter);
-      filter.connect(gainNode);
-      gainNode.connect(audioCtx.destination);
-      whiteNoise.start();
-
-      return () => {
-        try {
-          whiteNoise.stop();
-          audioCtx?.close();
-        } catch {}
-      };
-    } catch {
-      return () => {};
-    }
-  }, [isPlayingRain]);
 
   // Micro breathing interval
   useEffect(() => {
@@ -283,55 +221,10 @@ export const DashboardPage: React.FC = () => {
 
         {/* Bento 2: Daily Affirmation Anchor (Spans 5 cols on desktop) */}
         <section className="md:col-span-5 bg-tertiary-fixed/40 rounded-2xl p-6 md:p-8 border border-outline-variant/20 flex flex-col justify-between relative overflow-hidden">
-          <div>
-            <div className="flex items-center justify-between mb-6">
-              <span className="px-3 py-1 rounded-full bg-surface-container-lowest text-[11px] text-on-surface tracking-wider uppercase font-semibold shadow-xs">
-                Daily Anchor
-              </span>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsAffirmationLiked(!isAffirmationLiked);
-                  showToast(
-                    isAffirmationLiked ? 'Removed from favorites' : 'Saved to favorite anchors',
-                    'info',
-                  );
-                }}
-                aria-label="Save affirmation"
-                className={`w-9 h-9 rounded-full bg-surface-container-lowest flex items-center justify-center transition-colors shadow-sm ${
-                  isAffirmationLiked ? 'text-error' : 'text-on-surface-variant hover:text-error'
-                }`}
-              >
-                <span className="material-symbols-outlined text-[18px]">favorite</span>
-              </button>
-            </div>
-
-            <blockquote className="font-display font-semibold text-2xl sm:text-3xl text-on-surface tracking-tight leading-snug">
-              “You don’t have to figure out your whole life today. Focus on what needs your
-              attention next.”
-            </blockquote>
-          </div>
-
-          <div className="pt-8">
-            <div className="flex items-center justify-between bg-surface-container-lowest/80 backdrop-blur-md p-2 rounded-full shadow-sm border border-outline-variant/10">
-              <div className="flex items-center gap-3 pl-2">
-                <button
-                  type="button"
-                  onClick={() => setIsPlayingRain(!isPlayingRain)}
-                  aria-label="Play ambient soft rain"
-                  className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary hover:opacity-90 transition-opacity shadow-sm"
-                >
-                  <span className="material-symbols-outlined text-[16px]">
-                    {isPlayingRain ? 'pause' : 'play_arrow'}
-                  </span>
-                </button>
-                <span className="text-xs sm:text-sm font-medium text-on-surface">
-                  {isPlayingRain ? 'Playing soft rain audio' : 'Listen with soft rain'}
-                </span>
-              </div>
-              <span className="text-xs text-on-surface-variant pr-4">3 min</span>
-            </div>
-          </div>
+          <blockquote className="font-display font-semibold text-2xl sm:text-3xl text-on-surface tracking-tight leading-snug">
+            “You don’t have to figure out your whole life today. Focus on what needs your
+            attention next.”
+          </blockquote>
         </section>
 
         {/* Bento 3: Weekly Mood Rhythm (Spans 5 cols on desktop) */}
