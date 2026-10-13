@@ -10,4 +10,9 @@ export default defineConfig({
       '@': path.resolve(import.meta.dirname),
     },
   },
+  server: {
+    allowedHosts: [
+      '://onrender.com'
+    ]
+  }
 });
