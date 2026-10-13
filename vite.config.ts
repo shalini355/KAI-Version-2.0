@@ -12,7 +12,7 @@ export default defineConfig({
   },
   server: {
     allowedHosts: [
-      '://onrender.com'
+      ':kai-version-2-0.onrender.com'
     ]
   }
 });
