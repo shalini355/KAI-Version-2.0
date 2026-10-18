@@ -1,36 +1,22 @@
-# KAI Version 2.0
+# KAI
 
-<p align="center">
-  <img src="https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react" alt="React 19" />
-  <img src="https://img.shields.io/badge/TypeScript-5.9-3178C6?style=for-the-badge&logo=typescript" alt="TypeScript 5.9" />
-  <img src="https://img.shields.io/badge/Vite-8-646CFF?style=for-the-badge&logo=vite" alt="Vite 8" />
-  <img src="https://img.shields.io/badge/Node.js-22-339933?style=for-the-badge&logo=node.js" alt="Node.js 22" />
-  <img src="https://img.shields.io/badge/Gemini-AI-8A2BE2?style=for-the-badge" alt="Gemini AI" />
-</p>
+KAI is a student wellbeing app with English and Hinglish chat, mood check-ins, a journal, breathing exercises, and links to support services in India. It is a tool for reflection, not a replacement for professional care.
 
-KAI is an AI-powered mental well-being assistant designed for students and young adults who want support in a language and tone that feels natural. The app blends emotional support, journaling, mood tracking, and wellness tools with a calmer, more approachable UX than traditional health apps.
+Mood and journal entries stay in the current browser. Chat messages are sent to the app server and Google Gemini to generate replies; this project does not provide end-to-end encryption or account sync.
 
-This project is built to feel supportive without pretending to replace professional care. It provides compassionate responses, practical self-check features, and a safe, low-friction place to reflect.
+Profiles are local convenience profiles, not online accounts: they are stored in browser storage and are not password-protected. Use a guest profile for a quick visit. Do not enter sensitive or identifying information.
 
 ## Live Repository
 
 - GitHub: https://github.com/shalini355/KAI-Version-2.0.git
 
-## Why KAI?
-
-College life often brings exam stress, burnout, self-doubt, hostel pressure, and uncertainty about the future. Many students do not want formal clinic-style language or a heavy mental-health dashboard when they just need a safe place to begin.
-
-KAI is designed for that moment.
-
 ## Key Features
 
-- English and Hinglish AI chat
+- English and Hinglish chat, with replies generated through the server-side Gemini API
 - Mood tracking and wellness check-ins
-- Journal and reflection space
-- Breathing and calming routines
-- Support resources and crisis guidance
+- A journal stored in the current browser
+- A breathing timer and public support contacts
 - Responsive web experience for desktop and mobile
-- Local-first personal data handling for the current prototype
 
 ## Tech Stack
 
@@ -55,7 +41,6 @@ KAI is designed for that moment.
 │   └── main.tsx
 ├── tests/
 ├── .env.example
-├── .gitignore
 ├── eslint.config.js
 ├── index.html
 ├── package.json
@@ -63,8 +48,7 @@ KAI is designed for that moment.
 ├── server.ts
 ├── tsconfig.json
 ├── vite.config.ts
-├── vitest.config.ts
-└── AI_TELLS.md
+└── vitest.config.ts
 ```
 
 ## Getting Started
@@ -113,18 +97,13 @@ http://localhost:5000
 
 ## Deploying with Vercel and Render
 
-Deploy the Vite frontend to Vercel and the Express API to Render. In both dashboards,
-set the project root directory to:
-
-```text
-Version 2.0/Kai - AI Powered Mental Health Well-being Assisstant
-```
+Deploy the Vite frontend to Vercel and the Express API to Render. Use the repository root as the project root in both dashboards.
 
 ### Render API web service
 
 Create a **Node.js Web Service** connected to this GitHub repository and configure:
 
-- Build command: `npm ci && npm run build`
+- Build command: `npm install && npm run build`
 - Start command: `npm run start`
 - Environment: `NODE_ENV=production`
 - Environment: `GEMINI_API_KEY` set to your Gemini API key
@@ -172,8 +151,6 @@ CLIENT_ORIGIN=http://localhost:5173
 GEMINI_API_KEY=your_api_key_here
 ```
 
-Additional keys exist in `.env.example` for future integrations such as MongoDB, auth, email, and AI providers. These are reserved for planned backend features and are not required for the current prototype build.
-
 ## Privacy and Safety Notice
 
 KAI is not a therapist, clinician, or emergency-monitoring system. It is a supportive digital companion designed to help users reflect and seek help when needed.
@@ -204,7 +181,3 @@ Please review [SECURITY.md](SECURITY.md) for responsible disclosure guidelines.
 ## License
 
 This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
-
-## Team
-
-Built with a student-first, user-centered design perspective for better mental well-being experiences.

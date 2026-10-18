@@ -6,8 +6,8 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isGuest: boolean;
-  login: (email: string, pass: string) => Promise<User>;
-  signup: (name: string, email: string, pass: string) => Promise<User>;
+  login: (email: string) => Promise<User>;
+  signup: (name: string, email: string) => Promise<User>;
   guestLogin: () => User;
   logout: () => void;
   updateProfile: (updates: Partial<User>) => User;
@@ -18,14 +18,14 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(() => authService.getCurrentUser());
 
-  const login = async (email: string, pass: string) => {
-    const logged = await authService.login(email, pass);
+  const login = async (email: string) => {
+    const logged = await authService.login(email);
     setUser(logged);
     return logged;
   };
 
-  const signup = async (name: string, email: string, pass: string) => {
-    const newUser = await authService.signup(name, email, pass);
+  const signup = async (name: string, email: string) => {
+    const newUser = await authService.signup(name, email);
     setUser(newUser);
     return newUser;
   };

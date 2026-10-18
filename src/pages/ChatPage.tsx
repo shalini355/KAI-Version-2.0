@@ -31,7 +31,9 @@ export const ChatPage: React.FC = () => {
   const [streamingText, setStreamingText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
-  const [language, setLanguage] = useState<'english' | 'hinglish'>('hinglish');
+  const [language, setLanguage] = useState<'english' | 'hinglish'>(
+    user?.preferredLanguage || 'hinglish',
+  );
 
   // Crisis Modal state
   const [isCrisisOpen, setIsCrisisOpen] = useState(false);
@@ -312,8 +314,7 @@ export const ChatPage: React.FC = () => {
         controller.signal,
       );
     } catch (error: unknown) {
-      const message =
-        error instanceof Error ? error.message : "That didn't go through. Try again?";
+      const message = error instanceof Error ? error.message : "That didn't go through. Try again?";
       setIsStreaming(false);
       setStreamingText('');
       setSendError(message);

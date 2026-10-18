@@ -1,60 +1,12 @@
 import React, { useState } from 'react';
 
-const SAMPLE_COUNSELORS = [
-  {
-    id: 'sample-1',
-    title: 'Student counsellor',
-    languages: ['Hindi', 'English'],
-    specializations: ['Exam stress', 'Hostel adjustment'],
-    availability: 'Sample hours: weekday afternoons',
-    location: 'Kanpur · online or in person',
-  },
-  {
-    id: 'sample-2',
-    title: 'Youth wellbeing counsellor',
-    languages: ['Hindi', 'English'],
-    specializations: ['Placement stress', 'Confidence'],
-    availability: 'Sample hours: evenings by appointment',
-    location: 'Lucknow · online',
-  },
-  {
-    id: 'sample-3',
-    title: 'College wellbeing adviser',
-    languages: ['Hindi', 'English'],
-    specializations: ['Family pressure', 'Relationships'],
-    availability: 'Sample hours: Monday to Friday',
-    location: 'Prayagraj · in person',
-  },
-  {
-    id: 'sample-4',
-    title: 'Student support counsellor',
-    languages: ['Hindi', 'English'],
-    specializations: ['Burnout', 'Sleep routine'],
-    availability: 'Sample hours: Saturday mornings',
-    location: 'Varanasi · online',
-  },
-];
-
 export const SupportPage: React.FC = () => {
-  const [languageFilter, setLanguageFilter] = useState('all');
-  const [specializationFilter, setSpecializationFilter] = useState('all');
   const [expandedResource, setExpandedResource] = useState<string | null>('anxiety');
-
-  const filteredCounselors = SAMPLE_COUNSELORS.filter((counselor) => {
-    const languageMatch = languageFilter === 'all' || counselor.languages.includes(languageFilter);
-    const specializationMatch =
-      specializationFilter === 'all' || counselor.specializations.includes(specializationFilter);
-    return languageMatch && specializationMatch;
-  });
 
   return (
     <div className="w-full flex flex-col gap-8 pt-2 text-left">
       {/* Header */}
       <div>
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-container text-xs text-on-surface-variant font-medium mb-3">
-          <span className="w-2 h-2 rounded-full bg-error" />
-          <span>Support in India</span>
-        </div>
         <h1 className="font-display font-semibold text-3xl sm:text-4xl text-on-surface tracking-tight">
           Support & Helplines
         </h1>
@@ -162,78 +114,20 @@ export const SupportPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Sample counsellor profiles */}
-      <section className="flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <h2 className="font-headline font-semibold text-xl text-on-surface">
-              Available Support Specialists
-            </h2>
-            <p className="text-xs text-on-surface-variant">
-              Browse specialists by language and focus area. Contact your institution or the
-              helplines above to connect with a counsellor.
-            </p>
-          </div>
-
-          {/* Filters */}
-          <div className="flex flex-wrap items-center gap-2">
-            <select
-              value={languageFilter}
-              onChange={(e) => setLanguageFilter(e.target.value)}
-              className="bg-surface-container-lowest text-xs text-on-surface px-3 py-1.5 rounded-full border border-outline-variant/15 focus:outline-none"
-            >
-              <option value="all">Language: All</option>
-              <option value="Hindi">Hindi</option>
-              <option value="English">English</option>
-            </select>
-
-            <select
-              value={specializationFilter}
-              onChange={(e) => setSpecializationFilter(e.target.value)}
-              className="bg-surface-container-lowest text-xs text-on-surface px-3 py-1.5 rounded-full border border-outline-variant/15 focus:outline-none"
-            >
-              <option value="all">Specialization: All</option>
-              <option value="Exam stress">Exam stress</option>
-              <option value="Hostel adjustment">Hostel adjustment</option>
-              <option value="Placement stress">Placement stress</option>
-              <option value="Family pressure">Family pressure</option>
-              <option value="Burnout">Burnout</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Profiles are examples only; no contact details are shown. */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filteredCounselors.map((counselor) => (
-            <div
-              key={counselor.id}
-              className="p-5 rounded-2xl bg-surface-container-lowest border border-dashed border-outline-variant/30 flex flex-col gap-3"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <h3 className="font-headline font-semibold text-base text-on-surface">
-                    Verified Specialist
-                  </h3>
-                  <p className="text-xs text-on-surface-variant">{counselor.title}</p>
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-1">
-                {counselor.specializations.map((specialization) => (
-                  <span
-                    key={specialization}
-                    className="px-2 py-1 rounded bg-surface-container text-[11px] text-on-surface"
-                  >
-                    {specialization}
-                  </span>
-                ))}
-              </div>
-              <p className="text-xs text-on-surface-variant">
-                {counselor.languages.join(', ')} · {counselor.location}
-              </p>
-              <p className="text-xs text-on-surface-variant">{counselor.availability}</p>
-            </div>
-          ))}
-        </div>
+      <section className="rounded-2xl border border-outline-variant/20 bg-surface-container-lowest p-6 md:p-8">
+        <h2 className="font-headline font-semibold text-xl text-on-surface">
+          Finding ongoing support
+        </h2>
+        <p className="mt-2 max-w-3xl text-sm leading-relaxed text-on-surface-variant">
+          KAI does not provide counselling or maintain a verified provider directory. For ongoing
+          support, ask your college student-support office or campus clinic what services are
+          available, or speak with a licensed mental health professional. Confirm credentials,
+          availability, fees, and confidentiality directly before sharing personal information.
+        </p>
+        <p className="mt-3 text-sm leading-relaxed text-on-surface-variant">
+          If you or someone else may be in immediate danger, call 112. For mental health support in
+          India, Tele-MANAS can be reached at 14416.
+        </p>
       </section>
 
       {/* Understanding What You're Feeling (Psychoeducation) */}
@@ -254,25 +148,25 @@ export const SupportPage: React.FC = () => {
               id: 'anxiety',
               title: 'Anxiety & Tight Chest',
               summary: 'Why your body enters fight-or-flight over exams and deadlines.',
-              body: 'When your brain perceives a future threat (e.g. failing a semester, letting family down), your sympathetic nervous system floods adrenaline. Your lungs breathe shallowly and chest muscles tighten. The 4-second exhale stimulates the vagus nerve to send a chemical all-clear signal.',
+              body: 'Stress can show up as worry, restlessness, trouble concentrating, or physical tension. A short pause or one manageable next step may help in the moment. If it is intense, keeps returning, or affects daily life, consider speaking with a qualified professional.',
             },
             {
               id: 'burnout',
-              title: 'Student Burnout vs Laziness',
-              summary: 'Why scrolling endlessly feels exhausting instead of restful.',
-              body: 'Laziness is an active choice to enjoy relaxation. Burnout is a chronic state of emotional depletion where you feel guilty when resting, and overwhelmed when working. True recharge requires sensory rest without screens.',
+              title: 'Feeling depleted',
+              summary: 'A reminder that exhaustion does not make you lazy.',
+              body: 'Feeling depleted does not mean you are lazy. Notice which demands feel hard to sustain, take rest where you can, and talk with someone you trust. A qualified professional can help if exhaustion or distress continues.',
             },
             {
               id: 'catastrophizing',
-              title: 'Exam Season Catastrophizing',
-              summary: 'How one delayed assignment snowballs into "my career is ruined".',
-              body: 'Catastrophizing is a cognitive distortion that treats a 1% worst-case scenario as a 100% certainty. Writing down the intermediate steps breaks the spiral into manageable, concrete tasks.',
+              title: 'When worries snowball',
+              summary: 'Try separating what you know from what you are imagining.',
+              body: 'When one worry turns into a chain of worst-case possibilities, it may help to write down what you know, what is still uncertain, and one small next action. This is a reflection tool, not a diagnosis or a guarantee.',
             },
             {
               id: 'sleep',
               title: 'Late-Night Thought Spirals',
-              summary: 'Why worries look 10x heavier between 1 AM and 4 AM.',
-              body: 'In the middle of the night, dopamine and executive prefrontal cortex functioning drop naturally. The brain struggles to problem-solve and defaults to rumination. Parking worries onto a night scratchpad tells your brain: "This is stored safely; we will handle it tomorrow."',
+              summary: 'A low-pressure way to set a worry aside until later.',
+              body: 'Worries can feel especially close when you are tired. If it helps, jot them down and return to them when you feel more rested; you do not have to solve everything right now. If sleep problems persist, consider talking with a health professional.',
             },
           ].map((resource) => {
             const isExpanded = expandedResource === resource.id;
@@ -281,8 +175,11 @@ export const SupportPage: React.FC = () => {
                 key={resource.id}
                 className="p-5 rounded-2xl bg-surface-container-lowest border border-outline-variant/15 shadow-xs transition-all"
               >
-                <div
-                  className="flex items-center justify-between cursor-pointer"
+                <button
+                  type="button"
+                  aria-expanded={isExpanded}
+                  aria-controls={`support-resource-${resource.id}`}
+                  className="flex w-full items-center justify-between text-left"
                   onClick={() => setExpandedResource(isExpanded ? null : resource.id)}
                 >
                   <h3 className="font-headline font-semibold text-base text-on-surface">
@@ -295,10 +192,13 @@ export const SupportPage: React.FC = () => {
                   >
                     expand_more
                   </span>
-                </div>
+                </button>
                 <p className="text-xs text-on-surface-variant mt-1">{resource.summary}</p>
                 {isExpanded && (
-                  <p className="text-xs text-on-surface mt-3 pt-3 border-t border-outline-variant/10 leading-relaxed animate-in fade-in">
+                  <p
+                    id={`support-resource-${resource.id}`}
+                    className="text-xs text-on-surface mt-3 pt-3 border-t border-outline-variant/10 leading-relaxed animate-in fade-in"
+                  >
                     {resource.body}
                   </p>
                 )}

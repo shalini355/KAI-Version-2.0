@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useToast } from '../context/ToastContext';
 import { authService } from '../services/authService';
+import { toLocalDateKey } from '../utils/date';
 
 export const SettingsPage: React.FC = () => {
   const { user, updateProfile, logout } = useAuth();
@@ -31,16 +32,30 @@ export const SettingsPage: React.FC = () => {
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
-    updateProfile({ name, email });
-    showToast('Profile saved in this browser.', 'success');
+    try {
+      updateProfile({ name, email });
+      showToast('Profile saved in this browser.', 'success');
+    } catch (error: unknown) {
+      showToast(
+        error instanceof Error ? error.message : 'Could not save the local profile.',
+        'error',
+      );
+    }
   };
 
   const handleSavePreferences = () => {
-    updateProfile({
-      preferredLanguage: lang,
-      reminderTime: reminderEnabled ? reminderTime : undefined,
-    });
-    showToast('Preferences updated.', 'success');
+    try {
+      updateProfile({
+        preferredLanguage: lang,
+        reminderTime: reminderEnabled ? reminderTime : undefined,
+      });
+      showToast('Preferences updated.', 'success');
+    } catch (error: unknown) {
+      showToast(
+        error instanceof Error ? error.message : 'Could not save preferences in this browser.',
+        'error',
+      );
+    }
   };
 
   const handleDownloadData = () => {
@@ -49,7 +64,7 @@ export const SettingsPage: React.FC = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `kai_data_export_${new Date().toISOString().split('T')[0]}.json`;
+    a.download = `kai_data_export_${toLocalDateKey(new Date())}.json`;
     a.click();
     URL.revokeObjectURL(url);
     showToast('A copy of this browser’s Kai data was downloaded.', 'success');
@@ -81,10 +96,6 @@ export const SettingsPage: React.FC = () => {
     <div className="w-full flex flex-col gap-6 pt-2 text-left max-w-4xl mx-auto">
       {/* Header */}
       <div>
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-container text-xs text-on-surface-variant font-medium mb-3">
-          <span className="material-symbols-outlined text-[15px] text-primary">tune</span>
-          <span>Local profile and app settings</span>
-        </div>
         <h1 className="font-display font-semibold text-3xl sm:text-4xl text-on-surface tracking-tight">
           Settings & Privacy
         </h1>

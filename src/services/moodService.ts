@@ -1,4 +1,5 @@
 import { MoodEntry, MoodType } from '../types';
+import { getLocalDayOfWeek, toLocalDateKey } from '../utils/date';
 
 const STORAGE_KEY_MOODS = 'kai_mood_logs';
 
@@ -37,10 +38,11 @@ export const moodService = {
     note: string = '',
     timeOfDay: 'morning' | 'afternoon' | 'evening' | 'night' = 'morning',
   ): MoodEntry {
-    const moods = this.getMoods();
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = toLocalDateKey(new Date());
+    const moods = this.getMoods().filter(
+      (mood) => mood.date !== todayStr || mood.timeOfDay !== timeOfDay,
+    );
 
-    // Remove any existing entry for today with same timeOfDay or prepend
     const newEntry: MoodEntry = {
       id: 'mood-' + Date.now(),
       value,
@@ -64,24 +66,25 @@ export const moodService = {
     const uniqueDates = Array.from(new Set(moods.map((m) => m.date)))
       .sort()
       .reverse();
-    const today = new Date().toISOString().split('T')[0];
-    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+    const todayDate = new Date();
+    const today = toLocalDateKey(todayDate);
+    const yesterdayDate = new Date(todayDate);
+    yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+    const yesterday = toLocalDateKey(yesterdayDate);
 
     if (!uniqueDates.includes(today) && !uniqueDates.includes(yesterday)) {
       return 0;
     }
 
     let streak = 0;
-    let checkDate = new Date();
-    if (!uniqueDates.includes(today)) {
-      checkDate = new Date(Date.now() - 86400000);
-    }
+    const checkDate = new Date(todayDate);
+    if (!uniqueDates.includes(today)) checkDate.setDate(checkDate.getDate() - 1);
 
     while (true) {
-      const dateStr = checkDate.toISOString().split('T')[0];
+      const dateStr = toLocalDateKey(checkDate);
       if (uniqueDates.includes(dateStr)) {
         streak++;
-        checkDate = new Date(checkDate.getTime() - 86400000);
+        checkDate.setDate(checkDate.getDate() - 1);
       } else {
         break;
       }
@@ -106,7 +109,7 @@ export const moodService = {
       counts[m.value] = (counts[m.value] || 0) + 1;
       totalIntensity += m.intensity || MOOD_CONFIG[m.value].score;
 
-      const day = new Date(m.date).getDay();
+      const day = getLocalDayOfWeek(m.date);
       if (!dayScores[day]) dayScores[day] = { sum: 0, count: 0 };
       dayScores[day].sum += m.intensity || 5;
       dayScores[day].count += 1;
@@ -162,8 +165,9 @@ export const moodService = {
     const dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
     for (let i = 6; i >= 0; i--) {
-      const targetDate = new Date(Date.now() - i * 86400000);
-      const dateStr = targetDate.toISOString().split('T')[0];
+      const targetDate = new Date();
+      targetDate.setDate(targetDate.getDate() - i);
+      const dateStr = toLocalDateKey(targetDate);
       const match = moods.find((m) => m.date === dateStr);
 
       days.push({

@@ -1,4 +1,5 @@
 import { WellnessActivity } from '../types';
+import { toLocalDateKey } from '../utils/date';
 
 const STORAGE_KEY_ACTIVITIES = 'kai_wellness_activities';
 
@@ -28,7 +29,7 @@ export const activityService = {
       id: 'act-' + Date.now(),
       type,
       duration: durationMinutes,
-      date: new Date().toISOString().split('T')[0],
+      date: toLocalDateKey(new Date()),
       timestamp: new Date().toISOString(),
       details,
     };

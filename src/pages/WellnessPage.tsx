@@ -156,10 +156,18 @@ export const WellnessPage: React.FC = () => {
 
   // Journal Editor Drawer / Modal
   const [editingEntry, setEditingEntry] = useState<JournalEntry | null>(null);
-  const [isCreatingNew, setIsCreatingNew] = useState(false);
+  const [isCreatingNew, setIsCreatingNew] = useState(() => searchParams.get('new') === 'true');
   const [editorTitle, setEditorTitle] = useState('');
   const [editorContent, setEditorContent] = useState('');
   const [editorMoodTag, setEditorMoodTag] = useState<MoodType | undefined>('calm');
+
+  useEffect(() => {
+    if (searchParams.get('new') !== 'true') return;
+
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete('new');
+    setSearchParams(nextParams, { replace: true });
+  }, [searchParams, setSearchParams]);
 
   /* ---------------- GUIDED BREATHING STATE ---------------- */
   const [breathingTechnique, setBreathingTechnique] = useState<'box' | '478' | 'calm55'>('box');
@@ -370,10 +378,6 @@ export const WellnessPage: React.FC = () => {
       {/* Page Header with Weekly Activity Summary */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-container text-xs text-on-surface-variant font-medium mb-3">
-            <span className="w-2 h-2 rounded-full bg-primary" />
-            <span>Grounding and reflection tools</span>
-          </div>
           <h1 className="font-display font-semibold text-3xl sm:text-4xl text-on-surface tracking-tight">
             Wellness Hub
           </h1>

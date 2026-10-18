@@ -91,16 +91,7 @@ function getGeminiHttpStatus(error: unknown): number | undefined {
 
 // Initialize GoogleGenAI SDK safely
 const apiKey = process.env.GEMINI_API_KEY || '';
-const ai = apiKey
-  ? new GoogleGenAI({
-      apiKey,
-      httpOptions: {
-        headers: {
-          'User-Agent': 'aistudio-build',
-        },
-      },
-    })
-  : null;
+const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
 // Streaming Chat API endpoint
 app.post('/api/chat/stream', chatRateLimit, async (req: Request, res: Response) => {

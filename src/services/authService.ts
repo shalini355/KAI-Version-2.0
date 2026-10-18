@@ -3,6 +3,34 @@ import { User } from '../types';
 const STORAGE_KEY_USER = 'kai_user';
 const STORAGE_KEY_USERS_DB = 'kai_users_db';
 
+function getSavedUsers(): User[] {
+  const raw = localStorage.getItem(STORAGE_KEY_USERS_DB);
+  if (!raw) return [];
+
+  let users: unknown;
+  try {
+    users = JSON.parse(raw);
+  } catch {
+    throw new Error('Saved local profiles are unreadable. Clear this browser’s KAI profile data.');
+  }
+
+  if (
+    !Array.isArray(users) ||
+    !users.every(
+      (user) =>
+        typeof user === 'object' &&
+        user !== null &&
+        typeof user.id === 'string' &&
+        typeof user.name === 'string' &&
+        typeof user.email === 'string',
+    )
+  ) {
+    throw new Error('Saved local profiles are invalid. Clear this browser’s KAI profile data.');
+  }
+
+  return users;
+}
+
 export const authService = {
   getCurrentUser(): User | null {
     const raw = localStorage.getItem(STORAGE_KEY_USER);
@@ -20,67 +48,49 @@ export const authService = {
     }
   },
 
-  login(email: string, password: string): Promise<User> {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        if (!email || !password) {
-          reject(new Error('Please enter both email and password.'));
-          return;
-        }
-        if (password.length < 6) {
-          reject(new Error('Password must be at least 6 characters.'));
-          return;
-        }
+  async login(email: string): Promise<User> {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail) throw new Error('Enter the email used for this local profile.');
 
-        const usersDb: User[] = JSON.parse(localStorage.getItem(STORAGE_KEY_USERS_DB) || '[]');
-        const existing = usersDb.find((u) => u.email.toLowerCase() === email.toLowerCase());
+    const user = getSavedUsers().find(
+      (savedUser) => savedUser.email.trim().toLowerCase() === normalizedEmail,
+    );
+    if (!user) {
+      throw new Error(
+        'No local profile matches that email. Create a profile or continue as a guest.',
+      );
+    }
 
-        const user: User = existing || {
-          id: 'user_' + Date.now(),
-          name: email.split('@')[0],
-          email,
-          isGuest: false,
-          preferredLanguage: 'english',
-          focusAreas: ['stress', 'studies'],
-          createdAt: new Date().toISOString(),
-        };
-
-        localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(user));
-        resolve(user);
-      }, 300);
-    });
+    localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(user));
+    return user;
   },
 
-  signup(name: string, email: string, password: string): Promise<User> {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        if (!name || !email || !password) {
-          reject(new Error('All fields are required.'));
-          return;
-        }
-        if (password.length < 6) {
-          reject(new Error('Password should be at least 6 characters.'));
-          return;
-        }
+  async signup(name: string, email: string): Promise<User> {
+    const normalizedName = name.trim();
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedName || !normalizedEmail) {
+      throw new Error('Enter a name and email to create a local profile.');
+    }
 
-        const newUser: User = {
-          id: 'user_' + Date.now(),
-          name,
-          email,
-          isGuest: false,
-          preferredLanguage: 'english',
-          focusAreas: [],
-          createdAt: new Date().toISOString(),
-        };
+    const users = getSavedUsers();
+    if (users.some((user) => user.email.trim().toLowerCase() === normalizedEmail)) {
+      throw new Error('A local profile already uses that email. Open it or choose another email.');
+    }
 
-        const usersDb: User[] = JSON.parse(localStorage.getItem(STORAGE_KEY_USERS_DB) || '[]');
-        usersDb.push(newUser);
-        localStorage.setItem(STORAGE_KEY_USERS_DB, JSON.stringify(usersDb));
-        localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(newUser));
+    const newUser: User = {
+      id: `user_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      name: normalizedName,
+      email: normalizedEmail,
+      isGuest: false,
+      preferredLanguage: 'english',
+      focusAreas: [],
+      createdAt: new Date().toISOString(),
+    };
 
-        resolve(newUser);
-      }, 300);
-    });
+    users.push(newUser);
+    localStorage.setItem(STORAGE_KEY_USERS_DB, JSON.stringify(users));
+    localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(newUser));
+    return newUser;
   },
 
   loginAsGuest(): User {
@@ -100,7 +110,37 @@ export const authService = {
   updateProfile(updates: Partial<User>): User {
     const current = this.getCurrentUser();
     if (!current) throw new Error('No active profile.');
-    const updated = { ...current, ...updates };
+    const normalizedUpdates = {
+      ...updates,
+      ...(typeof updates.name === 'string' ? { name: updates.name.trim() } : {}),
+      ...(typeof updates.email === 'string' ? { email: updates.email.trim().toLowerCase() } : {}),
+    };
+    const updated = { ...current, ...normalizedUpdates };
+
+    if (!updated.name || (!current.isGuest && !updated.email)) {
+      throw new Error(
+        current.isGuest ? 'A profile name is required.' : 'A profile name and email are required.',
+      );
+    }
+
+    if (!current.isGuest) {
+      const users = getSavedUsers();
+      if (
+        users.some(
+          (user) =>
+            user.id !== current.id &&
+            user.email.trim().toLowerCase() === updated.email.toLowerCase(),
+        )
+      ) {
+        throw new Error('Another local profile already uses that email.');
+      }
+
+      const index = users.findIndex((user) => user.id === current.id);
+      if (index < 0) throw new Error('The saved local profile could not be found.');
+      users[index] = updated;
+      localStorage.setItem(STORAGE_KEY_USERS_DB, JSON.stringify(users));
+    }
+
     localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(updated));
     return updated;
   },

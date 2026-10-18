@@ -11,35 +11,16 @@ export const SignupPage: React.FC = () => {
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-
-  // Compute password strength
-  const getPasswordStrength = (pass: string) => {
-    let score = 0;
-    if (pass.length >= 6) score += 25;
-    if (pass.length >= 8) score += 25;
-    if (/[A-Z]/.test(pass)) score += 25;
-    if (/[0-9!@#$%^&*]/.test(pass)) score += 25;
-    return score;
-  };
-
-  const strength = getPasswordStrength(password);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    if (password.length < 6) {
-      setError('Password should be at least 6 characters.');
-      return;
-    }
-
     setIsLoading(true);
     try {
-      await signup(name, email, password);
+      await signup(name, email);
       showToast('Local profile created.', 'success');
       navigate('/onboarding');
     } catch (error: unknown) {
@@ -63,14 +44,17 @@ export const SignupPage: React.FC = () => {
           Create a local profile
         </h1>
         <p className="text-xs sm:text-sm text-on-surface-variant mt-1">
-          This demo saves profile and journal data in this browser. Chat requests go to the app
-          server and Google Gemini.
+          Profiles, mood check-ins, and journal entries stay in this browser. Chat messages go to
+          the app server and Google Gemini. Local profiles are not password-protected.
         </p>
       </div>
 
       <div className="w-full bg-surface-container-lowest rounded-3xl p-6 sm:p-8 shadow-sm border border-outline-variant/20 flex flex-col gap-5">
         {error && (
-          <div className="p-3 rounded-xl bg-error-container/40 text-on-error-container text-xs flex items-center gap-2">
+          <div
+            role="alert"
+            className="p-3 rounded-xl bg-error-container/40 text-on-error-container text-xs flex items-center gap-2"
+          >
             <span className="material-symbols-outlined text-[18px]">error</span>
             <span>{error}</span>
           </div>
@@ -78,12 +62,14 @@ export const SignupPage: React.FC = () => {
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-on-surface">
+            <label htmlFor="profile-name" className="text-xs font-semibold text-on-surface">
               What should Kai call you?
             </label>
             <input
+              id="profile-name"
               type="text"
               required
+              autoComplete="name"
               placeholder="What should we call you?"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -92,66 +78,19 @@ export const SignupPage: React.FC = () => {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-on-surface">Email address</label>
+            <label htmlFor="profile-email" className="text-xs font-semibold text-on-surface">
+              Email for this local profile
+            </label>
             <input
+              id="profile-email"
               type="email"
               required
+              autoComplete="email"
               placeholder="Email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-4 py-2.5 rounded-xl bg-surface-container-low text-sm text-on-surface focus:outline-none border border-outline-variant/15 placeholder:text-on-surface-variant/50"
             />
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-on-surface">Password</label>
-            <div className="relative flex items-center">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                required
-                placeholder="At least 6 characters"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-surface-container-low text-sm text-on-surface focus:outline-none border border-outline-variant/15 placeholder:text-on-surface-variant/50 pr-10"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 text-on-surface-variant hover:text-on-surface"
-              >
-                <span className="material-symbols-outlined text-[18px]">
-                  {showPassword ? 'visibility_off' : 'visibility'}
-                </span>
-              </button>
-            </div>
-
-            {/* Password strength bar */}
-            {password.length > 0 && (
-              <div className="flex flex-col gap-1 mt-1">
-                <div className="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
-                  <div
-                    className={`h-full transition-all duration-300 ${
-                      strength <= 25
-                        ? 'bg-error w-1/4'
-                        : strength <= 50
-                          ? 'bg-tertiary w-1/2'
-                          : strength <= 75
-                            ? 'bg-secondary w-3/4'
-                            : 'bg-primary w-full'
-                    }`}
-                  />
-                </div>
-                <span className="text-[10px] text-on-surface-variant">
-                  {strength <= 25
-                    ? 'Weak password'
-                    : strength <= 50
-                      ? 'Fairly secure'
-                      : strength <= 75
-                        ? 'Strong password'
-                        : 'Very strong password'}
-                </span>
-              </div>
-            )}
           </div>
 
           <button
@@ -179,9 +118,9 @@ export const SignupPage: React.FC = () => {
         </button>
 
         <div className="text-center pt-2 border-t border-outline-variant/10 text-xs text-on-surface-variant">
-          Already have an account?{' '}
+          Already have a profile in this browser?{' '}
           <Link to="/login" className="text-primary font-semibold hover:underline">
-            Sign in here
+            Open it
           </Link>
         </div>
       </div>

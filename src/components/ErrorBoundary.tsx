@@ -40,11 +40,11 @@ export class ErrorBoundary extends Component<Props, State> {
           <section className="flex w-full max-w-lg flex-col items-center rounded-3xl border border-outline-variant/20 bg-surface-container-lowest p-8 text-center shadow-lg sm:p-10">
             <KaiOrb size="lg" animate={true} />
             <h1 className="mt-6 font-headline text-2xl font-semibold text-on-surface sm:text-3xl">
-              Dashboard is optimizing...
+              Something went wrong
             </h1>
             <p className="mt-3 max-w-sm text-sm leading-relaxed text-on-surface-variant">
-              Something unexpected happened. Your browser-saved notes should still be there. Reload
-              the application to try again.
+              The page hit an unexpected error. Your browser-saved data should still be there.
+              Reload the application to try again.
             </p>
             <button
               type="button"

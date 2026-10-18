@@ -1,7 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { activityService } from '../src/services/activityService';
+import { authService } from '../src/services/authService';
 import { chatService } from '../src/services/chatService';
 import { moodService } from '../src/services/moodService';
+import { toLocalDateKey } from '../src/utils/date';
 
 function createStorage(): Storage {
   const values = new Map<string, string>();
@@ -29,6 +31,23 @@ describe('local data services', () => {
   it('starts with no fabricated mood entries or streak', () => {
     expect(moodService.getMoods()).toEqual([]);
     expect(moodService.getStreak()).toBe(0);
+  });
+
+  it('formats dates using the user’s local calendar date', () => {
+    const date = new Date(2026, 9, 19, 0, 15);
+
+    expect(toLocalDateKey(date)).toBe('2026-10-19');
+  });
+
+  it('replaces a same-day check-in at the same time of day', () => {
+    const first = moodService.logMood('sad', 3, [], '', 'evening');
+    const replacement = moodService.logMood('calm', 8, [], '', 'evening');
+    moodService.logMood('happy', 9, [], '', 'morning');
+
+    expect(replacement.date).toBe(first.date);
+    expect(moodService.getMoods()).toHaveLength(2);
+    expect(moodService.getMoods()[0].value).toBe('happy');
+    expect(moodService.getMoods()[1].value).toBe('calm');
   });
 
   it('counts only activity the user records', () => {
@@ -106,5 +125,66 @@ describe('local data services', () => {
   it('still flags direct self-harm language for crisis support', () => {
     expect(chatService.checkCrisis('I want to die')).toBe(true);
     expect(chatService.checkCrisis('I am stressed about exams')).toBe(false);
+  });
+});
+
+describe('local profiles', () => {
+  beforeEach(() => {
+    vi.stubGlobal('localStorage', createStorage());
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('creates and reopens a saved profile by case-insensitive email', async () => {
+    const created = await authService.signup('  Asha  ', ' ASHA@example.com ');
+    const opened = await authService.login('asha@EXAMPLE.com');
+
+    expect(created.name).toBe('Asha');
+    expect(created.email).toBe('asha@example.com');
+    expect(opened.id).toBe(created.id);
+    expect(JSON.parse(localStorage.getItem('kai_user') || 'null')).toMatchObject({
+      id: created.id,
+      email: 'asha@example.com',
+    });
+  });
+
+  it('does not silently create a profile during login', async () => {
+    await expect(authService.login('unknown@example.com')).rejects.toThrow(
+      'No local profile matches that email.',
+    );
+    expect(localStorage.getItem('kai_users_db')).toBeNull();
+    expect(localStorage.getItem('kai_user')).toBeNull();
+  });
+
+  it('rejects duplicate local profile emails', async () => {
+    await authService.signup('Asha', 'asha@example.com');
+
+    await expect(authService.signup('Another name', 'ASHA@example.com')).rejects.toThrow(
+      'A local profile already uses that email.',
+    );
+  });
+
+  it('persists profile edits so the updated email can reopen the profile', async () => {
+    const profile = await authService.signup('Asha', 'asha@example.com');
+    authService.updateProfile({ name: 'Asha Patel', email: 'ASHA.PATEL@example.com' });
+    authService.logout();
+
+    const reopened = await authService.login('asha.patel@example.com');
+
+    expect(reopened).toMatchObject({
+      id: profile.id,
+      name: 'Asha Patel',
+      email: 'asha.patel@example.com',
+    });
+  });
+
+  it('allows guests to update their name without an email', () => {
+    authService.loginAsGuest();
+
+    const updated = authService.updateProfile({ name: 'Guest Demo' });
+
+    expect(updated).toMatchObject({ name: 'Guest Demo', email: '', isGuest: true });
   });
 });

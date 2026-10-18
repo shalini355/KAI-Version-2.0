@@ -13,6 +13,7 @@ import {
 import { moodService, MOOD_CONFIG } from '../services/moodService';
 import { MoodEntry, MoodType } from '../types';
 import { useToast } from '../context/ToastContext';
+import { toLocalDateKey } from '../utils/date';
 
 export const MoodPage: React.FC = () => {
   const { showToast } = useToast();
@@ -30,7 +31,6 @@ export const MoodPage: React.FC = () => {
     'morning',
   );
 
-  const streak = moodService.getStreak();
   const insights = moodService.getInsights();
   const weekData = moodService.getLast7DaysForChart();
 
@@ -90,8 +90,9 @@ export const MoodPage: React.FC = () => {
     const days = [];
     const now = new Date();
     for (let i = 27; i >= 0; i--) {
-      const d = new Date(now.getTime() - i * 86400000);
-      const dateStr = d.toISOString().split('T')[0];
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const dateStr = toLocalDateKey(d);
       const match = moods.find((m) => m.date === dateStr);
       days.push({
         date: dateStr,
@@ -108,14 +109,6 @@ export const MoodPage: React.FC = () => {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-container text-xs text-on-surface-variant font-medium mb-3">
-            <span className="w-2 h-2 rounded-full bg-primary" />
-            <span>Your check-ins</span>
-            <span>•</span>
-            <span className="text-primary font-semibold">
-              {streak ? `${streak}-day streak` : 'No check-ins yet'}
-            </span>
-          </div>
           <h1 className="font-display font-semibold text-3xl sm:text-4xl text-on-surface tracking-tight">
             Mood log
           </h1>

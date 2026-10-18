@@ -56,7 +56,7 @@ export const LandingPage: React.FC = () => {
   >('calm');
 
   // FAQ Accordion State
-  const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   const handleSendPreview = (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,72 +74,53 @@ export const LandingPage: React.FC = () => {
   return (
     <div className="w-full flex flex-col pt-4">
       {/* Hero Section */}
-      <section className="relative pt-6 md:pt-12 pb-12">
-        <div className="max-w-4xl mx-auto text-center flex flex-col items-center">
-          {/* Social Proof Micro Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-surface-container-lowest/90 backdrop-blur-md shadow-[0_8px_24px_rgba(9,30,37,0.04)] mb-6 border border-outline-variant/20">
-            <span className="w-2 h-2 rounded-full bg-primary-container shadow-[0_0_8px_rgba(127,184,171,0.8)]" />
-            <span className="text-xs text-on-surface-variant font-medium">
-              Built with college life in mind
-            </span>
-            <span className="text-surface-dim">•</span>
-            <span className="text-xs text-primary flex items-center gap-1 font-semibold">
-              <span className="material-symbols-outlined text-[14px]">translate</span>
-              English + Hinglish
-            </span>
+      <section className="relative py-10 md:py-16">
+        <div className="grid items-center gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-14">
+          <div className="max-w-xl">
+            <h1 className="font-display font-semibold text-4xl leading-tight tracking-tight text-on-surface sm:text-5xl md:text-[58px] md:leading-[1.12]">
+              A place to put it into words.
+            </h1>
+
+            <p className="mt-5 max-w-lg text-lg leading-relaxed text-on-surface-variant">
+              Exam stress, placement panic, or a feeling you can’t quite name. Start wherever you
+              are, in English or Hinglish.
+            </p>
+
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <Link
+                to={isAuthenticated ? '/chat' : '/signup'}
+                className="inline-flex h-12 items-center gap-2 rounded-full bg-primary px-6 text-sm font-semibold text-on-primary transition-all hover:-translate-y-0.5 hover:opacity-90 active:scale-[0.98] sm:text-base"
+              >
+                <span>Start a conversation</span>
+                <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+              </Link>
+
+              <a
+                href="#how-it-works"
+                className="inline-flex h-12 items-center rounded-full px-5 text-sm font-semibold text-on-surface-variant transition-colors hover:bg-surface-container-high hover:text-on-surface sm:text-base"
+              >
+                Explore the tools
+              </a>
+            </div>
+
+            <p className="mt-5 text-xs leading-relaxed text-on-surface-variant">
+              Kai is a supportive chat companion, not a therapist or crisis service.
+            </p>
           </div>
 
-          {/* Oversized Friendly Headline */}
-          <h1 className="font-display font-semibold text-4xl sm:text-5xl md:text-[54px] md:leading-15.5 text-on-surface tracking-tight max-w-3xl">
-            It's okay to <span className="rough-underline">not be okay.</span>
-          </h1>
-
-          {/* Subtext */}
-          <p className="text-body-lg text-lg text-on-surface-variant mt-4 max-w-xl leading-relaxed">
-            A place to put the exam stress, placement panic, or whatever else is taking up space
-            today.
-          </p>
-
-          {/* CTA Buttons */}
-          <div className="flex flex-wrap items-center justify-center gap-4 mt-8">
-            <Link
-              to={isAuthenticated ? '/chat' : '/signup'}
-              className="h-12 px-8 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-semibold text-sm sm:text-base flex items-center gap-2 shadow-[0_12px_32px_rgba(247,205,184,0.45)] hover:bg-tertiary-container hover:text-on-tertiary-container hover:-translate-y-0.5 active:scale-[0.98] transition-all"
-            >
-              <span>Start talking</span>
-              <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
-            </Link>
-
-            <a
-              href="#how-it-works"
-              className="h-12 px-8 rounded-full bg-surface-container-lowest text-on-surface-variant font-semibold text-sm sm:text-base flex items-center hover:text-on-surface hover:bg-surface-container-high transition-all shadow-[0_4px_16px_rgba(9,30,37,0.03)] border border-outline-variant/15"
-            >
-              See how it works
-            </a>
-          </div>
-
-          {/* Floating Interactive Chat Preview Bento */}
-          <div className="w-full max-w-2xl mt-12 bg-surface-container-lowest/90 backdrop-blur-xl rounded-2xl p-6 md:p-8 shadow-[0_20px_48px_-8px_rgba(127,184,171,0.18)] border border-outline-variant/20 flex flex-col text-left relative overflow-hidden">
+          <div className="w-full rounded-3xl border border-outline-variant/30 bg-surface-container-lowest p-5 shadow-[0_18px_48px_rgba(9,30,37,0.08)] sm:p-7">
             {/* Chat Header Ribbon */}
-            <div className="flex items-center justify-between pb-4 mb-4 border-b border-outline-variant/10">
+            <div className="mb-5 flex items-center gap-3 border-b border-outline-variant/20 pb-4">
               <div className="flex items-center gap-3">
-                <KaiOrb size="md" animate={true} />
+                <KaiOrb size="sm" animate={false} />
                 <div>
                   <div className="flex items-center gap-1.5">
                     <span className="font-headline font-semibold text-base text-on-surface">
                       Kai
                     </span>
-                    <span className="text-[11px] px-2 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed font-medium">
-                      Chat preview
-                    </span>
                   </div>
-                  <p className="text-[11px] text-on-surface-variant">Example conversation</p>
+                  <p className="text-xs text-on-surface-variant">A sample conversation</p>
                 </div>
-              </div>
-
-              <div className="flex items-center gap-1.5 text-on-surface-variant">
-                <span className="inline-block w-2.5 h-2.5 rounded-full bg-primary-container animate-pulse" />
-                <span className="text-xs text-primary font-medium">listening</span>
               </div>
             </div>
 
@@ -148,14 +129,14 @@ export const LandingPage: React.FC = () => {
               {/* Message 1 */}
               <div className="flex items-end gap-2 max-w-[85%]">
                 <div className="bg-secondary-container/40 dark:bg-secondary-container/20 text-on-surface rounded-2xl rounded-bl-sm p-4 text-sm md:text-base shadow-sm">
-                  Hey. How has today been, really?
+                  Hey, what’s been on your mind today?
                 </div>
               </div>
 
               {/* Message 2 */}
               <div className="flex items-end justify-end self-end max-w-[85%]">
                 <div className="bg-primary text-on-primary rounded-2xl rounded-br-sm p-4 text-sm md:text-base shadow-[0_8px_20px_rgba(47,104,93,0.18)]">
-                  two submissions due and i keep opening the same doc without writing anything
+                  I have two submissions due and keep opening the same doc without writing anything.
                 </div>
               </div>
 
@@ -163,8 +144,8 @@ export const LandingPage: React.FC = () => {
               <div className="flex items-start gap-2 max-w-[88%]">
                 <div className="bg-secondary-container/40 dark:bg-secondary-container/20 text-on-surface rounded-2xl rounded-bl-sm p-4 text-sm md:text-base shadow-sm flex flex-col gap-2">
                   <p>
-                    That stuck feeling before a deadline is rough. Want to pick one tiny thing to
-                    start with, or just get it off your chest?
+                    That stuck feeling before a deadline is rough. We could pick one small thing to
+                    start with, or you can just get it off your chest.
                   </p>
                   <Link
                     to="/wellness?tab=breathing"
@@ -204,7 +185,7 @@ export const LandingPage: React.FC = () => {
             {/* Minimalist Input Capsule */}
             <form
               onSubmit={handleSendPreview}
-              className="mt-4 flex items-center gap-2 p-1.5 pl-4 rounded-full bg-surface-container-high/80 border border-outline-variant/15"
+              className="mt-5 flex items-center gap-2 rounded-full border border-outline-variant/30 bg-surface-container-low px-4 py-1.5"
             >
               <span className="material-symbols-outlined text-on-surface-variant text-[20px]">
                 chat_bubble_outline
@@ -212,6 +193,7 @@ export const LandingPage: React.FC = () => {
               <input
                 className="bg-transparent text-on-surface text-sm md:text-base w-full focus:outline-none placeholder:text-on-surface-variant/60"
                 placeholder="Type whatever comes to mind..."
+                aria-label="Your message"
                 type="text"
                 value={previewInput}
                 onChange={(e) => setPreviewInput(e.target.value)}
@@ -228,17 +210,15 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Bento Grid Section: Features */}
+      {/* Tools */}
       <section className="py-12">
         <div className="flex flex-col mb-8 text-left">
-          <span className="text-xs text-primary uppercase tracking-widest font-semibold">
-            For the days that get a bit much
-          </span>
-          <h2 className="font-headline font-semibold text-2xl sm:text-3xl md:text-[36px] md:leading-11 text-on-surface tracking-tight mt-1">
-            A few things that might help
+          <h2 className="font-headline font-semibold text-2xl sm:text-3xl md:text-[36px] md:leading-11 text-on-surface tracking-tight">
+            A few ways to make space for yourself
           </h2>
           <p className="text-body-md text-on-surface-variant mt-2 max-w-xl">
-            Talk, jot something down, or try a breathing timer. No streaks required.
+            Talk something through, jot down a thought, or take a moment to breathe. No streaks or
+            goals to keep up with.
           </p>
         </div>
 
@@ -361,6 +341,7 @@ export const LandingPage: React.FC = () => {
                   <button
                     key={m.key}
                     onClick={() => setSelectedMood(m.key as typeof selectedMood)}
+                    aria-pressed={isSelected}
                     className={`p-2.5 rounded-xl flex flex-col items-center justify-center gap-1 transition-all ${
                       isSelected
                         ? 'bg-primary-container/30 ring-1 ring-primary/30 shadow-sm'
@@ -376,8 +357,8 @@ export const LandingPage: React.FC = () => {
             </div>
 
             <div className="flex items-center justify-between text-on-surface-variant text-xs pt-2">
-              <span>Example moods</span>
-              <span className="text-primary font-semibold">Preview</span>
+              <span>Choose what feels closest</span>
+              <span className="text-primary font-semibold">Try it</span>
             </div>
           </div>
 
@@ -396,11 +377,11 @@ export const LandingPage: React.FC = () => {
             </div>
 
             <div className="my-4 p-4 rounded-xl bg-surface-container-low flex flex-col gap-2 text-left">
-              <span className="text-[11px] text-primary font-semibold uppercase tracking-wider">
-                Reflection prompt
+              <span className="text-xs text-primary font-semibold">
+                If you want a place to start
               </span>
               <p className="text-xs italic text-on-surface">
-                "What is one tiny thing you can forgive yourself for today?"
+                “What’s taking up the most space in your head right now?”
               </p>
               <div className="mt-1 pt-2 text-on-surface-variant text-xs flex items-center gap-1">
                 <span className="material-symbols-outlined text-[15px]">edit_note</span>
@@ -471,17 +452,14 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* How It Works Section */}
+      {/* Getting started */}
       <section className="py-12" id="how-it-works">
         <div className="text-center max-w-2xl mx-auto mb-10">
-          <span className="text-xs text-primary uppercase tracking-widest font-semibold">
-            Getting started
-          </span>
-          <h2 className="font-headline font-semibold text-2xl sm:text-3xl md:text-[36px] text-on-surface tracking-tight mt-1">
-            How it works
+          <h2 className="font-headline font-semibold text-2xl sm:text-3xl md:text-[36px] text-on-surface tracking-tight">
+            Start wherever you are
           </h2>
           <p className="text-body-md text-on-surface-variant mt-2">
-            No long setup. Pick a tool and see if it helps.
+            No long setup. Choose a tool and use only what feels useful.
           </p>
         </div>
 
@@ -580,14 +558,11 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* FAQ Accordion Section */}
+      {/* FAQ */}
       <section className="py-12 max-w-3xl mx-auto w-full">
         <div className="text-center mb-8">
-          <span className="text-xs text-primary uppercase tracking-widest font-semibold">
-            Before you start
-          </span>
-          <h2 className="font-headline font-semibold text-2xl sm:text-3xl md:text-[36px] text-on-surface tracking-tight mt-1">
-            Frequently asked questions
+          <h2 className="font-headline font-semibold text-2xl sm:text-3xl md:text-[36px] text-on-surface tracking-tight">
+            A few things to know
           </h2>
         </div>
 
@@ -651,11 +626,11 @@ export const LandingPage: React.FC = () => {
           </div>
 
           <h2 className="font-headline font-semibold text-2xl sm:text-3xl md:text-[38px] text-on-surface tracking-tight max-w-xl">
-            Whenever you're ready, we're here.
+            You can start with one sentence.
           </h2>
 
           <p className="text-body-lg text-lg text-on-surface-variant mt-2 max-w-md">
-            Take a deep breath. You don't have to carry the whole world today.
+            No perfect words needed. Begin wherever you are.
           </p>
 
           <div className="mt-6">

@@ -64,32 +64,12 @@ export const DashboardPage: React.FC = () => {
     setTimeout(() => setIsSavedFeedback(false), 2500);
   };
 
-  const todayDateFormatted = new Date().toLocaleDateString('en-US', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-  });
-
   return (
     <div className="w-full flex flex-col pt-2 text-left">
       {/* Top Ambient Fluid Header */}
       <div className="relative w-full mb-8">
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
           <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface-container-high/80 backdrop-blur-md mb-4 shadow-sm border border-outline-variant/15">
-              <span className="w-2 h-2 rounded-full bg-primary-container animate-pulse" />
-              <span className="text-xs text-on-surface-variant font-medium">
-                {todayDateFormatted}
-              </span>
-              <span className="text-on-surface-variant/40">•</span>
-              <span className="text-xs text-primary font-semibold flex items-center gap-1">
-                <span className="material-symbols-outlined text-[16px] text-tertiary">
-                  local_fire_department
-                </span>
-                “Today needs one next step, not a five-year plan.”
-              </span>
-            </div>
-
             <h1 className="font-display font-semibold text-3xl sm:text-4xl md:text-5xl text-on-surface tracking-tight">
               Hey {user?.name || 'Friend'}, how are you feeling today?
             </h1>
@@ -222,8 +202,8 @@ export const DashboardPage: React.FC = () => {
         {/* Bento 2: Daily Affirmation Anchor (Spans 5 cols on desktop) */}
         <section className="md:col-span-5 bg-tertiary-fixed/40 rounded-2xl p-6 md:p-8 border border-outline-variant/20 flex flex-col justify-between relative overflow-hidden">
           <blockquote className="font-display font-semibold text-2xl sm:text-3xl text-on-surface tracking-tight leading-snug">
-            “You don’t have to figure out your whole life today. Focus on what needs your
-            attention next.”
+            “You don’t have to figure out your whole life today. Focus on what needs your attention
+            next.”
           </blockquote>
         </section>
 

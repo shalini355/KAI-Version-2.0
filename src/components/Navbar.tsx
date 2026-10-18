@@ -37,15 +37,11 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenCrisis }) => {
         <Link to={isAuthenticated ? '/dashboard' : '/'} className="flex items-center gap-2 group">
           <KaiOrb size="sm" animate={true} />
           <div className="flex flex-col">
-            <div className="flex items-center gap-1">
+            <div>
               <span className="font-headline font-semibold text-lg text-on-surface lowercase tracking-tight group-hover:text-primary transition-colors">
                 kai
               </span>
-              <span className="inline-block w-2 h-2 rounded-full bg-primary-container shadow-[0_0_8px_rgba(127,184,171,0.8)]" />
             </div>
-            <span className="text-[11px] font-medium text-on-surface-variant hidden sm:inline-block leading-none">
-              here for you
-            </span>
           </div>
         </Link>
 
