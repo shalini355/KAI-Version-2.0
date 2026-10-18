@@ -6,6 +6,8 @@ Mood and journal entries stay in the current browser. Chat messages are sent to 
 
 Profiles are local convenience profiles, not online accounts: they are stored in browser storage and are not password-protected. Use a guest profile for a quick visit. Do not enter sensitive or identifying information.
 
+For the product-design rationale and project limitations, see the [portfolio case study](docs/portfolio-case-study.md).
+
 ## Live Repository
 
 - GitHub: https://github.com/shalini355/KAI-Version-2.0.git
@@ -45,7 +47,10 @@ Profiles are local convenience profiles, not online accounts: they are stored in
 ├── index.html
 ├── package.json
 ├── README.md
+├── render.yaml
 ├── server.ts
+├── docs/
+│   └── portfolio-case-study.md
 ├── tsconfig.json
 ├── vite.config.ts
 └── vitest.config.ts
@@ -55,7 +60,7 @@ Profiles are local convenience profiles, not online accounts: they are stored in
 
 ### Prerequisites
 
-- Node.js 22+
+- Node.js 22.12+
 - npm
 
 ### 1. Clone the repository
@@ -95,36 +100,35 @@ The app runs on the default port `5000` and is available at:
 http://localhost:5000
 ```
 
-## Deploying with Vercel and Render
+## Deploying
 
-Deploy the Vite frontend to Vercel and the Express API to Render. Use the repository root as the project root in both dashboards.
+### Recommended: one Render web service
 
-### Render API web service
+The Express server serves both the built app and the chat API from one origin. This
+is the simplest deployment and avoids separate frontend/API CORS configuration.
 
-Create a **Node.js Web Service** connected to this GitHub repository and configure:
+1. Push this repository to GitHub.
+2. In Render, choose **New → Blueprint**, select this repository, and apply the
+   settings in [`render.yaml`](render.yaml).
+3. When prompted, set `GEMINI_API_KEY` to a key with access to the configured
+   Gemini model. Keep it server-side; never add it as a `VITE_` variable.
+4. Wait for the deploy, then open the service URL and confirm
+   `/api/health` returns a JSON response with `status: "ok"`. Try one chat
+   message as well as the local mood and journal flows.
 
-- Build command: `npm install && npm run build`
-- Start command: `npm run start`
-- Environment: `NODE_ENV=production`
-- Environment: `GEMINI_API_KEY` set to your Gemini API key
-- Environment: `CLIENT_ORIGIN` set to your Vercel URL, for example
-  `https://your-project.vercel.app`
+Render supplies `PORT`; the service uses the Node.js version specified in
+`package.json`. The Blueprint uses Render's free plan, which may sleep after
+inactivity and take time to wake. Choose an always-on plan if the portfolio demo
+needs consistently fast first responses.
 
-Render provides the `PORT` value automatically. After deploying, check
-`https://<your-render-service>.onrender.com/api/health`.
+### Optional: Vercel frontend + Render API
 
-### Vercel frontend
-
-Import the same GitHub repository as a Vercel project. Use the same root directory
-as above, select **Vite** if prompted, and configure:
-
-- Build command: `npm run build`
-- Output directory: `dist`
-- Environment variable: `VITE_API_BASE_URL=https://<your-render-service>.onrender.com`
-
-Redeploy Vercel after setting the environment variable. If you use a custom Vercel
-domain, add that exact `https://` URL to Render's comma-separated `CLIENT_ORIGIN`
-value as well. Keep `GEMINI_API_KEY` only in Render; do not add it to Vercel.
+If you prefer a separate Vercel frontend, import this repository with build
+command `npm run build` and output directory `dist`. Set
+`VITE_API_BASE_URL` to the Render service URL, then add the exact Vercel origin
+(including `https://` and any custom domain) to the Render service's
+comma-separated `CLIENT_ORIGIN` environment variable. Redeploy both services
+after changing environment variables. Keep `GEMINI_API_KEY` only on Render.
 
 ## Available Scripts
 
@@ -150,6 +154,9 @@ PORT=5000
 CLIENT_ORIGIN=http://localhost:5173
 GEMINI_API_KEY=your_api_key_here
 ```
+
+`CLIENT_ORIGIN` is only needed for a separately hosted frontend. Same-origin
+requests are allowed automatically.
 
 ## Privacy and Safety Notice
 

@@ -17,7 +17,7 @@ const app = express();
 const PORT = Number(process.env.PORT || 5000);
 const isProduction = process.env.NODE_ENV === 'production';
 const allowedOrigins = new Set(
-  (process.env.CLIENT_ORIGIN || 'http://localhost:5173')
+  (process.env.CLIENT_ORIGIN || (isProduction ? '' : 'http://localhost:5173'))
     .split(',')
     .map((origin) => origin.trim())
     .filter(Boolean),
@@ -30,6 +30,8 @@ const localDevelopmentOrigins = new Set([
 ]);
 
 app.disable('x-powered-by');
+// The hosted service sits behind one managed proxy; use the original client IP for rate limits.
+app.set('trust proxy', 1);
 app.use(
   helmet({
     contentSecurityPolicy: {
@@ -45,20 +47,30 @@ app.use(
     },
   }),
 );
-app.use(
+app.use((req, res, next) =>
   cors({
     origin(origin, callback) {
+      let isSameOrigin = false;
+      if (origin) {
+        try {
+          isSameOrigin = new URL(origin).host === req.get('host');
+        } catch {
+          isSameOrigin = false;
+        }
+      }
+
       if (
         !origin ||
+        isSameOrigin ||
         allowedOrigins.has(origin) ||
         (!isProduction && localDevelopmentOrigins.has(origin))
       ) {
         callback(null, true);
       } else {
-        callback(new Error('Origin is not allowed.'));
+        callback(null, false);
       }
     },
-  }),
+  })(req, res, next),
 );
 app.use(express.json({ limit: '32kb' }));
 
@@ -254,7 +266,14 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, '0.0.0.0');
+  await new Promise<void>((resolve, reject) => {
+    const server = app.listen(PORT, '0.0.0.0', resolve);
+    server.once('error', reject);
+  });
+  console.info(`KAI server is listening on port ${PORT}.`);
 }
 
-startServer();
+void startServer().catch((error: unknown) => {
+  console.error('KAI server failed to start.', error);
+  process.exitCode = 1;
+});
