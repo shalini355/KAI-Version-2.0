@@ -22,13 +22,21 @@ export const Footer: React.FC = () => {
         </div>
 
         {/* Center: Disclaimer & Links */}
-        <div className="flex items-center gap-4 text-xs text-on-surface-variant">
+        <div className="flex flex-wrap items-center justify-center gap-3 text-xs text-on-surface-variant">
           <Link to="/support" className="hover:text-primary transition-colors">
             Support Resources
           </Link>
           <span>•</span>
           <Link to="/settings" className="hover:text-primary transition-colors">
             Privacy & data
+          </Link>
+          <span>•</span>
+          <Link to="/privacy" className="hover:text-primary transition-colors">
+            Privacy Policy
+          </Link>
+          <span>•</span>
+          <Link to="/terms" className="hover:text-primary transition-colors">
+            Terms of Use
           </Link>
         </div>
 

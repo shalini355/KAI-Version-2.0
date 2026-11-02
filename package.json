@@ -2,7 +2,7 @@
   "name": "kai-student-wellbeing",
   "description": "A student-built wellbeing app with English and Hinglish chat, mood check-ins, journaling, and breathing tools.",
   "author": "Kai Student Team, PSIT Kanpur",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "private": true,
   "version": "0.0.0",
   "type": "module",

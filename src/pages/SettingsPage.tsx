@@ -134,7 +134,9 @@ export const SettingsPage: React.FC = () => {
         {/* SECTION 1: PROFILE */}
         {activeSection === 'profile' && (
           <div className="flex flex-col gap-6">
-            <h2 className="font-headline font-semibold text-lg text-on-surface">Local profile</h2>
+            <h2 className="font-headline font-semibold text-lg text-on-surface">
+              Demo profile (not secure sign-in)
+            </h2>
 
             <form onSubmit={handleSaveProfile} className="flex flex-col gap-4 max-w-md">
               <div className="flex flex-col gap-1.5">
@@ -175,7 +177,7 @@ export const SettingsPage: React.FC = () => {
 
             <div className="max-w-md rounded-xl bg-surface-container-low p-4 text-xs text-on-surface-variant">
               This prototype has no secure account service. Password changes and account recovery
-              are not available here.
+              are not available for this demo profile.
             </div>
 
             <div className="h-px bg-outline-variant/15 my-2" />
@@ -321,7 +323,7 @@ export const SettingsPage: React.FC = () => {
             <div className="p-4 rounded-2xl bg-surface-container-low flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <span className="text-sm font-semibold text-on-surface block">
-                  Download All My Data (.JSON)
+                  Export my data
                 </span>
                 <span className="text-xs text-on-surface-variant">
                   Get a complete copy of your mood logs, journal entries, and chat sessions.
@@ -333,7 +335,7 @@ export const SettingsPage: React.FC = () => {
                 className="px-5 py-2 rounded-full bg-surface-container text-on-surface text-xs font-semibold hover:bg-surface-container-high transition-colors flex items-center gap-1.5 self-start sm:self-auto shadow-xs"
               >
                 <span className="material-symbols-outlined text-[16px]">download</span>
-                <span>Export JSON</span>
+                <span>Export my data</span>
               </button>
             </div>
 
@@ -341,7 +343,7 @@ export const SettingsPage: React.FC = () => {
             <div className="p-4 rounded-2xl bg-error-container/20 border border-error/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <span className="text-sm font-semibold text-error block">
-                  Delete All My Data & Reset App
+                  Delete all my data
                 </span>
                 <span className="text-xs text-on-surface-variant">
                   Delete Kai profile, settings, journals, moods, chats, and feedback saved in this
@@ -353,7 +355,7 @@ export const SettingsPage: React.FC = () => {
                 onClick={() => setShowDeleteModal(true)}
                 className="px-5 py-2 rounded-full bg-error text-on-error text-xs font-semibold hover:opacity-90 transition-opacity self-start sm:self-auto shadow-xs"
               >
-                Delete Everything
+                Delete all my data
               </button>
             </div>
           </div>

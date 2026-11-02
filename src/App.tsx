@@ -38,6 +38,12 @@ const WellnessPage = React.lazy(() =>
 const SupportPage = React.lazy(() =>
   import('./pages/SupportPage').then((page) => ({ default: page.SupportPage })),
 );
+const PrivacyPolicyPage = React.lazy(() =>
+  import('./pages/PrivacyPolicyPage').then((page) => ({ default: page.PrivacyPolicyPage })),
+);
+const TermsOfUsePage = React.lazy(() =>
+  import('./pages/TermsOfUsePage').then((page) => ({ default: page.TermsOfUsePage })),
+);
 const SettingsPage = React.lazy(() =>
   import('./pages/SettingsPage').then((page) => ({ default: page.SettingsPage })),
 );
@@ -85,6 +91,8 @@ const AppLayout: React.FC = () => {
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/onboarding" element={<OnboardingPage />} />
             <Route path="/support" element={<SupportPage />} />
+            <Route path="/privacy" element={<PrivacyPolicyPage />} />
+            <Route path="/terms" element={<TermsOfUsePage />} />
 
             {/* Protected Routes */}
             <Route

@@ -40,11 +40,11 @@ export const LoginPage: React.FC = () => {
       <div className="mb-6 flex flex-col items-center text-center">
         <KaiOrb size="lg" animate={true} />
         <h1 className="font-display font-semibold text-2xl sm:text-3xl text-on-surface mt-3">
-          Open a local profile
+          Demo profile (not secure sign-in)
         </h1>
         <p className="mt-1 text-xs text-on-surface-variant sm:text-sm">
-          Enter the email used when creating the profile. Profiles are local to this browser and
-          have no password protection.
+          Enter an email to open a local demo profile. It is not secure sign-in and has no password
+          protection.
         </p>
       </div>
 

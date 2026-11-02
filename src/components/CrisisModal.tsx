@@ -1,12 +1,26 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface CrisisModalProps {
   isOpen: boolean;
   onClose: () => void;
   onContinueChat?: () => void;
+  initialImmediateDanger?: 'yes' | 'no' | null;
 }
 
-export const CrisisModal: React.FC<CrisisModalProps> = ({ isOpen, onClose, onContinueChat }) => {
+export const CrisisModal: React.FC<CrisisModalProps> = ({
+  isOpen,
+  onClose,
+  onContinueChat,
+  initialImmediateDanger = null,
+}) => {
+  const [immediateDanger, setImmediateDanger] = useState<'yes' | 'no' | null>(
+    initialImmediateDanger,
+  );
+
+  useEffect(() => {
+    if (isOpen) setImmediateDanger(initialImmediateDanger);
+  }, [isOpen, initialImmediateDanger]);
+
   if (!isOpen) return null;
 
   return (
@@ -26,98 +40,113 @@ export const CrisisModal: React.FC<CrisisModalProps> = ({ isOpen, onClose, onCon
               id="crisis-title"
               className="font-headline-md text-xl md:text-2xl font-bold text-on-surface"
             >
-              Please get someone with you now.
+              Are you in immediate danger right now?
             </h3>
             <p className="text-body-sm text-on-surface-variant mt-1.5 leading-relaxed">
-              Kai is not an emergency service and cannot contact help for you. Call one of the
-              services below, or ask someone nearby to stay with you.
+              Kai is not an emergency service and cannot contact help for you.
             </p>
           </div>
         </div>
 
-        {/* Helplines Box */}
-        <div className="flex flex-col gap-2.5">
-          <a
-            href="tel:14416"
-            className="p-3.5 rounded-xl bg-surface-container hover:bg-tertiary-fixed transition-colors flex items-center justify-between group"
-          >
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-semibold text-on-surface text-sm md:text-base">
-                  Tele-MANAS (Govt of India)
-                </span>
-                <span className="text-[11px] px-2 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed font-medium">
-                  24/7 Toll-Free
-                </span>
-              </div>
-              <p className="text-xs text-on-surface-variant mt-0.5">
-                Call 14416 for mental health support in India.
-              </p>
-            </div>
-            <div className="w-9 h-9 rounded-full bg-surface-container-lowest flex items-center justify-center text-primary group-hover:scale-105 transition-transform shadow-sm">
-              <span className="material-symbols-outlined text-[20px]">call</span>
-            </div>
-          </a>
-
-          <a
-            href="tel:9152987821"
-            className="p-3.5 rounded-xl bg-surface-container hover:bg-tertiary-fixed transition-colors flex items-center justify-between group"
-          >
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-semibold text-on-surface text-sm md:text-base">
-                  iCall Psychosocial Helpline (TISS)
-                </span>
-                <span className="text-[11px] px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-medium">
-                  Check current availability
-                </span>
-              </div>
-              <p className="text-xs text-on-surface-variant mt-0.5">
-                Call 9152987821. Check iCall's current service details.
-              </p>
-            </div>
-            <div className="w-9 h-9 rounded-full bg-surface-container-lowest flex items-center justify-center text-primary group-hover:scale-105 transition-transform shadow-sm">
-              <span className="material-symbols-outlined text-[20px]">call</span>
-            </div>
-          </a>
-
-          <a
-            href="tel:112"
-            className="p-3 rounded-xl bg-error-container/30 hover:bg-error-container/50 transition-colors flex items-center justify-between text-on-surface"
-          >
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-error text-[18px]">local_police</span>
-              <span className="font-medium text-xs md:text-sm">
-                National Emergency Helpline (Dial 112)
-              </span>
-            </div>
-            <span className="text-xs font-semibold text-error">Call 112</span>
-          </a>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
-          {onContinueChat && (
+        {immediateDanger === null && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <button
-              onClick={() => {
-                onClose();
-                onContinueChat();
-              }}
               type="button"
-              className="w-full sm:w-auto px-5 py-2.5 rounded-full bg-surface-container-high hover:bg-surface-container text-on-surface text-sm font-medium transition-colors"
+              onClick={() => setImmediateDanger('yes')}
+              className="min-h-12 rounded-full bg-error text-on-error font-semibold px-5 py-3"
             >
-              Continue talking to Kai
+              Yes
             </button>
-          )}
+            <button
+              type="button"
+              onClick={() => setImmediateDanger('no')}
+              className="min-h-12 rounded-full bg-primary text-on-primary font-semibold px-5 py-3"
+            >
+              No
+            </button>
+          </div>
+        )}
 
-          <button
-            onClick={onClose}
-            type="button"
-            className="w-full sm:w-auto px-6 py-2.5 rounded-full bg-primary text-on-primary text-sm font-semibold hover:opacity-90 transition-opacity ml-auto"
-          >
-            I'm safe right now
-          </button>
-        </div>
+        {immediateDanger === 'yes' && (
+          <div className="flex flex-col gap-3">
+            <p className="text-body-sm text-on-surface leading-relaxed font-semibold">
+              Talk to someone you trust and stay with them now. Move away from anything you could use
+              to hurt yourself.
+            </p>
+            <a
+              href="tel:112"
+              className="min-h-14 rounded-2xl bg-error text-on-error flex items-center justify-center gap-2 text-lg font-bold"
+            >
+              <span className="material-symbols-outlined">call</span>
+              Call 112 now
+            </a>
+            <a
+              href="tel:14416"
+              className="min-h-14 rounded-2xl bg-primary text-on-primary flex items-center justify-center gap-2 text-lg font-bold"
+            >
+              <span className="material-symbols-outlined">call</span>
+              Call Tele-MANAS 14416
+            </a>
+            <button
+              type="button"
+              onClick={onClose}
+              className="mt-1 px-5 py-3 rounded-full border border-outline-variant text-on-surface font-semibold"
+            >
+              Close
+            </button>
+          </div>
+        )}
+
+        {immediateDanger === 'no' && (
+          <>
+            <div className="flex flex-col gap-2.5">
+              <a
+                href="tel:14416"
+                className="min-h-14 p-3.5 rounded-xl bg-surface-container flex items-center justify-between"
+              >
+                <span className="font-semibold text-on-surface">Tele-MANAS · 14416</span>
+                <span className="material-symbols-outlined text-primary">call</span>
+              </a>
+              <a
+                href="tel:9152987821"
+                className="min-h-14 p-3.5 rounded-xl bg-surface-container flex items-center justify-between"
+              >
+                <span className="font-semibold text-on-surface">iCall · 9152987821</span>
+                <span className="material-symbols-outlined text-primary">call</span>
+              </a>
+              <a
+                href="tel:112"
+                className="min-h-14 p-3.5 rounded-xl bg-error-container/30 flex items-center justify-between"
+              >
+                <span className="font-semibold text-on-surface">National emergency · 112</span>
+                <span className="material-symbols-outlined text-error">call</span>
+              </a>
+              <p className="text-body-sm text-on-surface-variant">
+                It can help to contact someone you trust to stay with you while you decide what to do
+                next.
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
+              {onContinueChat && (
+                <button
+                  onClick={onContinueChat}
+                  type="button"
+                  className="w-full sm:w-auto px-5 py-3 rounded-full bg-surface-container-high text-on-surface text-sm font-medium"
+                >
+                  Continue talking to Kai
+                </button>
+              )}
+              <button
+                onClick={onClose}
+                type="button"
+                className="w-full sm:w-auto px-6 py-3 rounded-full bg-primary text-on-primary text-sm font-semibold sm:ml-auto"
+              >
+                Close
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

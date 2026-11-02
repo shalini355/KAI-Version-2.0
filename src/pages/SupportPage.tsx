@@ -1,7 +1,71 @@
 import React, { useState } from 'react';
+import { NearbyPsychiatrist, ProviderSearch, providerService } from '../services/providerService';
 
 export const SupportPage: React.FC = () => {
   const [expandedResource, setExpandedResource] = useState<string | null>('anxiety');
+  const [providerLocation, setProviderLocation] = useState('');
+  const [providers, setProviders] = useState<NearbyPsychiatrist[]>([]);
+  const [providerError, setProviderError] = useState<string | null>(null);
+  const [isSearchingProviders, setIsSearchingProviders] = useState(false);
+  const [hasSearchedProviders, setHasSearchedProviders] = useState(false);
+
+  const searchProviders = async (search: ProviderSearch) => {
+    setIsSearchingProviders(true);
+    setHasSearchedProviders(true);
+    setProviderError(null);
+    setProviders([]);
+
+    try {
+      setProviders(await providerService.findNearbyPsychiatrists(search));
+    } catch (error: unknown) {
+      setProviderError(
+        error instanceof Error ? error.message : 'Provider search could not be completed.',
+      );
+    } finally {
+      setIsSearchingProviders(false);
+    }
+  };
+
+  const handleSearchByLocation = () => {
+    const location = providerLocation.trim();
+    if (location.length < 2) {
+      setProviderError('Enter a city, area, or PIN code to search.');
+      return;
+    }
+    void searchProviders({ searchBy: 'text', location });
+  };
+
+  const handleSearchCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setProviderError(
+        'Location access is not available in this browser. Search by city or PIN code.',
+      );
+      return;
+    }
+
+    setIsSearchingProviders(true);
+    setHasSearchedProviders(true);
+    setProviderError(null);
+    setProviders([]);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        void searchProviders({
+          searchBy: 'coordinates',
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        });
+      },
+      (error) => {
+        setIsSearchingProviders(false);
+        setProviderError(
+          error.code === error.PERMISSION_DENIED
+            ? 'Location permission was denied. Search by city or PIN code instead.'
+            : 'Could not get your location. Check your device settings or search by city.',
+        );
+      },
+      { enableHighAccuracy: false, timeout: 10_000, maximumAge: 60_000 },
+    );
+  };
 
   return (
     <div className="w-full flex flex-col gap-8 pt-2 text-left">
@@ -128,6 +192,117 @@ export const SupportPage: React.FC = () => {
           If you or someone else may be in immediate danger, call 112. For mental health support in
           India, Tele-MANAS can be reached at 14416.
         </p>
+
+        <div className="mt-6 border-t border-outline-variant/20 pt-6">
+          <h3 className="font-headline font-semibold text-lg text-on-surface">
+            Find psychiatrists nearby
+          </h3>
+          <p className="mt-1 max-w-3xl text-sm leading-relaxed text-on-surface-variant">
+            Search Google Maps by city or PIN code, or choose to share your current location for a
+            nearby search. Location is only sent after you start a search. Listings and phone
+            numbers come from Google Maps and are not independently verified by KAI.
+          </p>
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+            <label className="sr-only" htmlFor="provider-location">
+              City, area, or PIN code
+            </label>
+            <input
+              id="provider-location"
+              type="text"
+              maxLength={120}
+              value={providerLocation}
+              onChange={(event) => setProviderLocation(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') handleSearchByLocation();
+              }}
+              placeholder="City, area, or PIN code"
+              className="min-w-0 flex-1 rounded-xl border border-outline-variant/40 bg-surface-container-lowest px-4 py-3 text-sm text-on-surface placeholder:text-on-surface-variant/70"
+            />
+            <button
+              type="button"
+              onClick={handleSearchByLocation}
+              disabled={isSearchingProviders}
+              className="rounded-full bg-primary px-5 py-3 text-sm font-semibold text-on-primary disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Search
+            </button>
+            <button
+              type="button"
+              onClick={handleSearchCurrentLocation}
+              disabled={isSearchingProviders}
+              className="rounded-full border border-outline-variant/40 px-5 py-3 text-sm font-semibold text-on-surface disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Use my location
+            </button>
+          </div>
+
+          {isSearchingProviders && (
+            <p className="mt-4 text-sm text-on-surface-variant" role="status">
+              Searching Google Maps…
+            </p>
+          )}
+          {providerError && (
+            <p className="mt-4 text-sm text-error" role="alert">
+              {providerError}
+            </p>
+          )}
+          {!isSearchingProviders && providers.length === 0 && !providerError && (
+            <p className="mt-4 text-sm text-on-surface-variant">
+              {hasSearchedProviders
+                ? 'No listings found. Try another nearby area or PIN code.'
+                : 'Search results can vary. Always confirm the provider’s qualifications and current contact details directly.'}
+            </p>
+          )}
+          {providers.length > 0 && (
+            <>
+              <ul
+                className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2"
+                aria-label="Psychiatrist search results"
+              >
+                {providers.map((provider) => (
+                  <li
+                    key={provider.id}
+                    className="rounded-xl border border-outline-variant/20 bg-surface-container-lowest p-4"
+                  >
+                    <h4 className="font-semibold text-on-surface">{provider.name}</h4>
+                    <p className="mt-1 text-sm text-on-surface-variant">{provider.address}</p>
+                    {provider.phoneNumber ? (
+                      <a
+                        href={`tel:${provider.phoneNumber.replace(/[^\d+]/g, '')}`}
+                        className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-primary"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">call</span>
+                        {provider.phoneNumber}
+                      </a>
+                    ) : (
+                      <p className="mt-3 text-sm text-on-surface-variant">
+                        Phone number not listed.
+                      </p>
+                    )}
+                    {provider.mapsUrl && (
+                      <a
+                        href={provider.mapsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="ml-4 inline-flex items-center gap-1 text-sm font-semibold text-primary"
+                      >
+                        Open in Maps
+                        <span className="material-symbols-outlined text-[16px]">open_in_new</span>
+                      </a>
+                    )}
+                  </li>
+                ))}
+              </ul>
+              <img
+                src="/google-maps-logo.svg"
+                alt="Google Maps"
+                width="98"
+                height="18"
+                className="mt-3 h-[18px] w-[98px]"
+              />
+            </>
+          )}
+        </div>
       </section>
 
       {/* Understanding What You're Feeling (Psychoeducation) */}

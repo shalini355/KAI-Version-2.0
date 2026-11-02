@@ -1,8 +1,18 @@
 import React, { useState, useEffect, useRef, useEffectEvent } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { chatService, ExtendedChatSession } from '../services/chatService';
+import {
+  assessRisk,
+  chatService,
+  CrisisState,
+  ExtendedChatSession,
+  GEMINI_FRIENDLY_FALLBACK,
+  hasFirstChatConsent,
+  HIGH_RISK_STATIC_RESPONSE,
+  recordFirstChatConsent,
+  transitionCrisisState,
+} from '../services/chatService';
 import { ChatMessage } from '../types';
 import { CrisisModal } from '../components/CrisisModal';
 import { KaiOrb } from '../components/KaiOrb';
@@ -31,6 +41,7 @@ export const ChatPage: React.FC = () => {
   const [streamingText, setStreamingText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
+  const [retryMessage, setRetryMessage] = useState<string | null>(null);
   const [language, setLanguage] = useState<'english' | 'hinglish'>(
     user?.preferredLanguage || 'hinglish',
   );
@@ -38,6 +49,10 @@ export const ChatPage: React.FC = () => {
   // Crisis Modal state
   const [isCrisisOpen, setIsCrisisOpen] = useState(false);
   const [pendingCrisisMessage, setPendingCrisisMessage] = useState<string | null>(null);
+  const [crisisState, setCrisisState] = useState<CrisisState>('none');
+  const [showMediumRiskBanner, setShowMediumRiskBanner] = useState(false);
+  const [showFirstChatConsent, setShowFirstChatConsent] = useState(() => !hasFirstChatConsent());
+  const [consentChecked, setConsentChecked] = useState(false);
 
   // Micro-Reset Box Breath State
   const [showMicroReset, setShowMicroReset] = useState(true);
@@ -87,6 +102,10 @@ export const ChatPage: React.FC = () => {
   useEffect(() => {
     const list = chatService.getSessions();
     setSessions(list);
+    setCrisisState(transitionCrisisState('none', 'reset'));
+    setIsCrisisOpen(false);
+    setPendingCrisisMessage(null);
+    setShowMediumRiskBanner(false);
 
     const routeState = location.state as { initialText?: unknown } | null;
     const initialTextFromState = routeState?.initialText;
@@ -196,6 +215,10 @@ export const ChatPage: React.FC = () => {
     const updated = chatService.getSessions();
     setSessions(updated);
     setActiveSession(newSession);
+    setCrisisState(transitionCrisisState(crisisState, 'reset'));
+    setIsCrisisOpen(false);
+    setPendingCrisisMessage(null);
+    setShowMediumRiskBanner(false);
     navigate(`/chat/${newSession.id}`);
     showToast('New conversation started.', 'success');
   };
@@ -203,6 +226,10 @@ export const ChatPage: React.FC = () => {
   const handleSelectSession = (s: ExtendedChatSession) => {
     setActiveSession(s);
     setLanguage(s.language);
+    setCrisisState(transitionCrisisState(crisisState, 'reset'));
+    setIsCrisisOpen(false);
+    setPendingCrisisMessage(null);
+    setShowMediumRiskBanner(false);
     navigate(`/chat/${s.id}`);
   };
 
@@ -212,40 +239,95 @@ export const ChatPage: React.FC = () => {
       const fresh = chatService.createSession(language, 'vents');
       setSessions([fresh]);
       setActiveSession(fresh);
+      setCrisisState(transitionCrisisState(crisisState, 'reset'));
+      setIsCrisisOpen(false);
+      setPendingCrisisMessage(null);
+      setShowMediumRiskBanner(false);
       navigate(`/chat/${fresh.id}`);
       showToast('Chat history deleted from this browser.', 'info');
     }
   };
 
-  const executeSendMessage = async (textToSend: string) => {
+  const executeSendMessage = async (
+    textToSend: string,
+    options?: { acknowledgedHighRisk?: boolean; isRetry?: boolean },
+  ) => {
+    if (!hasFirstChatConsent()) return;
     const messageText = textToSend.trim();
     if (!activeSession || !messageText || isLoading || isStreaming || isSendingRef.current) return;
 
-    if (chatService.checkCrisis(messageText)) {
+    const risk = assessRisk(messageText);
+    if (risk === 'medium') {
+      setShowMediumRiskBanner(true);
+    } else if (risk === 'none') {
+      setShowMediumRiskBanner(false);
+    }
+
+    if (
+      risk === 'high' &&
+      !options?.acknowledgedHighRisk &&
+      crisisState !== 'acknowledged'
+    ) {
+      setCrisisState(transitionCrisisState(crisisState, 'prompt'));
       setPendingCrisisMessage(messageText);
       setIsCrisisOpen(true);
       return;
     }
 
-    isSendingRef.current = true;
-    setIsLoading(true);
-    setSendError(null);
-
-    const controller = new AbortController();
-    let timedOut = false;
-    const timeoutId = window.setTimeout(() => {
-      timedOut = true;
-      controller.abort();
-    }, 30_000);
-
-    try {
+    if (risk === 'high') {
       const userMessage: ChatMessage = {
         id: 'usr-' + Date.now(),
         sender: 'user',
         text: messageText,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
-      const nextMessages = [...activeSession.messages, userMessage];
+      const kaiMessage: ChatMessage = {
+        id: 'kai-' + Date.now(),
+        sender: 'kai',
+        text: HIGH_RISK_STATIC_RESPONSE,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+      const nextMessages = [...activeSession.messages, userMessage, kaiMessage];
+      const sessionToUpdate: ExtendedChatSession = {
+        ...activeSession,
+        title:
+          activeSession.messages.length <= 1
+            ? messageText.slice(0, 32) + (messageText.length > 32 ? '...' : '')
+            : activeSession.title,
+        snippet: messageText.slice(0, 36) + (messageText.length > 36 ? '...' : ''),
+        language,
+        messages: nextMessages,
+        updatedAt: new Date().toISOString(),
+      };
+      setActiveSession(sessionToUpdate);
+      chatService.updateSession(sessionToUpdate);
+      setSessions(chatService.getSessions());
+      setInputText('');
+      return;
+    }
+
+    isSendingRef.current = true;
+    setIsLoading(true);
+    setSendError(null);
+    if (options?.isRetry) setRetryMessage(null);
+
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => {
+      controller.abort();
+    }, 30_000);
+
+    try {
+      const userMessage: ChatMessage | null = options?.isRetry
+        ? null
+        : {
+            id: 'usr-' + Date.now(),
+            sender: 'user',
+            text: messageText,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          };
+      const nextMessages = userMessage
+        ? [...activeSession.messages, userMessage]
+        : activeSession.messages;
       const sessionToUpdate: ExtendedChatSession = {
         ...activeSession,
         title:
@@ -268,7 +350,7 @@ export const ChatPage: React.FC = () => {
       await chatService.streamResponse(
         activeSession.id,
         activeSession.messages,
-        userMessage.text,
+        messageText,
         language,
         user?.name || 'there',
         user?.focusAreas || ['stress', 'sleep'],
@@ -303,22 +385,20 @@ export const ChatPage: React.FC = () => {
         (error) => {
           setIsStreaming(false);
           setStreamingText('');
-          const message = timedOut
-            ? 'Kai took too long to respond. Please try again.'
-            : error instanceof Error
-              ? error.message
-              : "That didn't go through. Try again?";
-          setSendError(message);
-          showToast(message, 'error');
+          void error;
+          setSendError(GEMINI_FRIENDLY_FALLBACK);
+          setRetryMessage(messageText);
+          showToast('KAI could not reply. Support options are available below.', 'info');
         },
         controller.signal,
       );
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "That didn't go through. Try again?";
+      void error;
       setIsStreaming(false);
       setStreamingText('');
-      setSendError(message);
-      showToast(message, 'error');
+      setSendError(GEMINI_FRIENDLY_FALLBACK);
+      setRetryMessage(messageText);
+      showToast('KAI could not reply. Support options are available below.', 'info');
     } finally {
       window.clearTimeout(timeoutId);
       setIsStreaming(false);
@@ -359,6 +439,57 @@ export const ChatPage: React.FC = () => {
 
   return (
     <div className="w-full flex flex-col pb-8 text-left relative selection:bg-primary-container selection:text-on-primary-container">
+      {showFirstChatConsent && (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-on-background/50 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="first-chat-consent-title"
+        >
+          <div className="w-full max-w-lg rounded-3xl border border-outline-variant/30 bg-surface-container-lowest p-6 shadow-2xl">
+            <h2
+              id="first-chat-consent-title"
+              className="font-headline text-xl font-semibold text-on-surface"
+            >
+              Before your first chat
+            </h2>
+            <div className="mt-3 space-y-3 text-sm leading-relaxed text-on-surface-variant">
+              <p>Chat text is sent to Google Gemini to generate KAI's responses.</p>
+              <p>
+                Data is stored unencrypted in this browser's local storage. Anyone with access to
+                this browser profile may be able to view it.
+              </p>
+              <p>
+                KAI is not a therapist and does not diagnose or prescribe treatment. Responses can
+                make mistakes, so use your own judgment and seek qualified help when needed.
+              </p>
+              <p className="font-semibold text-on-surface">
+                In an emergency, call 112 or Tele-MANAS at 14416.
+              </p>
+            </div>
+            <label className="mt-5 flex items-start gap-3 rounded-2xl border border-outline-variant/30 p-4 text-sm text-on-surface">
+              <input
+                type="checkbox"
+                checked={consentChecked}
+                onChange={(event) => setConsentChecked(event.target.checked)}
+                className="mt-0.5 h-4 w-4"
+              />
+              <span>I understand and consent to using KAI under these conditions.</span>
+            </label>
+            <button
+              type="button"
+              disabled={!consentChecked}
+              onClick={() => {
+                recordFirstChatConsent();
+                setShowFirstChatConsent(false);
+              }}
+              className="mt-5 w-full rounded-full bg-primary px-5 py-3 text-sm font-semibold text-on-primary disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Continue to chat
+            </button>
+          </div>
+        </div>
+      )}
       {/* Crisis Detection Modal */}
       <CrisisModal
         isOpen={isCrisisOpen}
@@ -370,7 +501,9 @@ export const ChatPage: React.FC = () => {
           if (pendingCrisisMessage) {
             const m = pendingCrisisMessage;
             setPendingCrisisMessage(null);
-            executeSendMessage(m);
+            setCrisisState(transitionCrisisState(crisisState, 'acknowledge'));
+            setIsCrisisOpen(false);
+            executeSendMessage(m, { acknowledgedHighRisk: true });
           }
         }}
       />
@@ -800,10 +933,69 @@ export const ChatPage: React.FC = () => {
             </div>
 
             {sendError && (
-              <p role="alert" className="px-2 text-sm text-error">
-                {sendError}
-              </p>
+              <div
+                role="alert"
+                className="flex flex-col gap-2 rounded-2xl border border-outline-variant/20 bg-surface-container-low p-3 text-sm text-on-surface"
+              >
+                <p>{GEMINI_FRIENDLY_FALLBACK}</p>
+                <div className="flex flex-wrap gap-2">
+                  <Link
+                    to="/wellness?tab=breathing"
+                    className="rounded-full bg-primary-container px-3 py-1.5 text-xs font-semibold text-on-primary-container"
+                  >
+                    Try a one-minute breathing exercise
+                  </Link>
+                  <Link
+                    to="/wellness?tab=journal"
+                    className="rounded-full bg-secondary-container px-3 py-1.5 text-xs font-semibold text-on-secondary-container"
+                  >
+                    Open a journal prompt
+                  </Link>
+                  <a
+                    href="tel:112"
+                    className="rounded-full bg-error-container px-3 py-1.5 text-xs font-semibold text-on-error-container"
+                  >
+                    Call 112
+                  </a>
+                  <a
+                    href="tel:14416"
+                    className="rounded-full bg-error-container px-3 py-1.5 text-xs font-semibold text-on-error-container"
+                  >
+                    Call 14416
+                  </a>
+                  {retryMessage && (
+                    <button
+                      type="button"
+                      onClick={() => executeSendMessage(retryMessage, { isRetry: true })}
+                      disabled={isLoading || isStreaming}
+                      className="rounded-full border border-primary px-3 py-1.5 text-xs font-semibold text-primary disabled:opacity-50"
+                    >
+                      Retry
+                    </button>
+                  )}
+                </div>
+              </div>
             )}
+
+            {showMediumRiskBanner && (
+              <div
+                role="status"
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-3 py-2 rounded-xl bg-secondary-container text-on-secondary-container text-xs"
+              >
+                <span>It sounds like a heavy moment. You deserve support, too.</span>
+                <a className="font-bold underline whitespace-nowrap" href="tel:14416">
+                  Need help now? Call 14416
+                </a>
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={() => setIsCrisisOpen(true)}
+              className="self-start px-3 py-1.5 rounded-full bg-error-container/30 text-on-surface text-xs font-semibold border border-error/20"
+            >
+              Need help now?
+            </button>
 
             {/* Pill Input Box */}
             <form
@@ -837,6 +1029,7 @@ export const ChatPage: React.FC = () => {
                 onChange={(e) => {
                   setInputText(e.target.value);
                   setSendError(null);
+                  setRetryMessage(null);
                 }}
                 disabled={isLoading || isStreaming}
                 className="flex-1 bg-transparent border-0 outline-none text-sm md:text-base text-on-surface placeholder:text-on-surface-variant/60 min-w-0"

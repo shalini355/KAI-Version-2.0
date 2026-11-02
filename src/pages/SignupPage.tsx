@@ -41,11 +41,12 @@ export const SignupPage: React.FC = () => {
       <div className="mb-6 flex flex-col items-center text-center">
         <KaiOrb size="lg" animate={true} />
         <h1 className="font-display font-semibold text-2xl sm:text-3xl text-on-surface mt-3">
-          Create a local profile
+          Create a demo profile
         </h1>
         <p className="text-xs sm:text-sm text-on-surface-variant mt-1">
-          Profiles, mood check-ins, and journal entries stay in this browser. Chat messages go to
-          the app server and Google Gemini. Local profiles are not password-protected.
+          Demo profile (not secure sign-in): this profile, mood check-ins, and journal entries stay
+          in this browser. Chat messages go to Google Gemini through the app server. There is no
+          password protection.
         </p>
       </div>
 

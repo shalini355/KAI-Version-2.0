@@ -17,7 +17,7 @@ For the product-design rationale and project limitations, see the [portfolio cas
 - English and Hinglish chat, with replies generated through the server-side Gemini API
 - Mood tracking and wellness check-ins
 - A journal stored in the current browser
-- A breathing timer and public support contacts
+- A breathing timer, public support contacts, and optional nearby psychiatrist search
 - Responsive web experience for desktop and mobile
 
 ## Tech Stack
@@ -34,6 +34,7 @@ For the product-design rationale and project limitations, see the [portfolio cas
 ```text
 .
 ├── public/
+│   └── google-maps-logo.svg
 ├── src/
 │   ├── components/
 │   ├── context/
@@ -42,6 +43,11 @@ For the product-design rationale and project limitations, see the [portfolio cas
 │   ├── types/
 │   └── main.tsx
 ├── tests/
+├── datasets/
+│   └── empathetic_dialogues/
+│       ├── train.jsonl.gz
+│       ├── validation.jsonl.gz
+│       └── test.jsonl.gz
 ├── .env.example
 ├── eslint.config.js
 ├── index.html
@@ -50,7 +56,11 @@ For the product-design rationale and project limitations, see the [portfolio cas
 ├── render.yaml
 ├── server.ts
 ├── docs/
+│   ├── empathetic-dialogues-dataset.md
+│   ├── project-audit.md
 │   └── portfolio-case-study.md
+├── scripts/
+│   └── prepare_empathetic_dialogues.py
 ├── tsconfig.json
 ├── vite.config.ts
 └── vitest.config.ts
@@ -88,6 +98,12 @@ Then add your Gemini API key in the `.env` file:
 GEMINI_API_KEY=your_api_key_here
 ```
 
+To enable psychiatrist search, enable the Google Places API (New) with billing in
+Google Cloud and set `GOOGLE_MAPS_API_KEY` in `.env`. Keep this key server-side;
+never expose it as a `VITE_` variable. The feature returns Google Maps listings,
+which KAI does not independently verify. Users can search by city/PIN code or
+explicitly grant browser location access.
+
 ### 4. Run the app
 
 ```bash
@@ -112,7 +128,9 @@ is the simplest deployment and avoids separate frontend/API CORS configuration.
    settings in [`render.yaml`](render.yaml).
 3. When prompted, set `GEMINI_API_KEY` to a key with access to the configured
    Gemini model. Keep it server-side; never add it as a `VITE_` variable.
-4. Wait for the deploy, then open the service URL and confirm
+4. To enable provider search, set `GOOGLE_MAPS_API_KEY` to a server-side key
+   with Places API (New) access and appropriate API restrictions.
+5. Wait for the deploy, then open the service URL and confirm
    `/api/health` returns a JSON response with `status: "ok"`. Try one chat
    message as well as the local mood and journal flows.
 
@@ -153,10 +171,20 @@ NODE_ENV=development
 PORT=5000
 CLIENT_ORIGIN=http://localhost:5173
 GEMINI_API_KEY=your_api_key_here
+GOOGLE_MAPS_API_KEY=
 ```
 
 `CLIENT_ORIGIN` is only needed for a separately hosted frontend. Same-origin
 requests are allowed automatically.
+
+## Training data
+
+The project includes a reproducible preparation script for the English
+EmpatheticDialogues corpus. Run `python scripts\prepare_empathetic_dialogues.py`
+to download and generate compressed chat JSONL files. Read
+[`docs/empathetic-dialogues-dataset.md`](docs/empathetic-dialogues-dataset.md)
+before use: the data is non-commercially licensed and is not clinical training
+or validation data.
 
 ## Privacy and Safety Notice
 
@@ -164,6 +192,8 @@ KAI is not a therapist, clinician, or emergency-monitoring system. It is a suppo
 
 - Crisis support should be routed to trusted contacts or official helplines.
 - Sensitive personal information should not be shared in chat prompts.
+- If you use nearby search, your chosen location is sent to Google Places to
+  retrieve listings; KAI does not store it.
 - This version is a local prototype and should be treated as such.
 
 ## Quality Checks
