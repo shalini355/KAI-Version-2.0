@@ -4,7 +4,6 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { activityService } from '../src/services/activityService';
 import { authService } from '../src/services/authService';
 import {
-  assessRisk,
   chatService,
   FIRST_CHAT_CONSENT_KEY,
   GEMINI_HISTORY_MESSAGE_LIMIT,

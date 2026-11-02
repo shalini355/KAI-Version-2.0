@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 interface CrisisModalProps {
   isOpen: boolean;
@@ -16,10 +16,6 @@ export const CrisisModal: React.FC<CrisisModalProps> = ({
   const [immediateDanger, setImmediateDanger] = useState<'yes' | 'no' | null>(
     initialImmediateDanger,
   );
-
-  useEffect(() => {
-    if (isOpen) setImmediateDanger(initialImmediateDanger);
-  }, [isOpen, initialImmediateDanger]);
 
   if (!isOpen) return null;
 

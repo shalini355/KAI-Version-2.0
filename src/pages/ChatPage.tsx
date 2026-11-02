@@ -491,22 +491,24 @@ export const ChatPage: React.FC = () => {
         </div>
       )}
       {/* Crisis Detection Modal */}
-      <CrisisModal
-        isOpen={isCrisisOpen}
-        onClose={() => {
-          setIsCrisisOpen(false);
-          setPendingCrisisMessage(null);
-        }}
-        onContinueChat={() => {
-          if (pendingCrisisMessage) {
-            const m = pendingCrisisMessage;
-            setPendingCrisisMessage(null);
-            setCrisisState(transitionCrisisState(crisisState, 'acknowledge'));
+      {isCrisisOpen && (
+        <CrisisModal
+          isOpen={true}
+          onClose={() => {
             setIsCrisisOpen(false);
-            executeSendMessage(m, { acknowledgedHighRisk: true });
-          }
-        }}
-      />
+            setPendingCrisisMessage(null);
+          }}
+          onContinueChat={() => {
+            if (pendingCrisisMessage) {
+              const m = pendingCrisisMessage;
+              setPendingCrisisMessage(null);
+              setCrisisState(transitionCrisisState(crisisState, 'acknowledge'));
+              setIsCrisisOpen(false);
+              executeSendMessage(m, { acknowledgedHighRisk: true });
+            }
+          }}
+        />
+      )}
 
       {/* Main Chat Studio Grid */}
       <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">

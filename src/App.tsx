@@ -157,7 +157,9 @@ const AppLayout: React.FC = () => {
       {!isAuthPage && <MobileTabBar />}
 
       {/* Global Crisis Helpline Modal */}
-      <CrisisModal isOpen={isCrisisModalOpen} onClose={() => setIsCrisisModalOpen(false)} />
+      {isCrisisModalOpen && (
+        <CrisisModal isOpen={true} onClose={() => setIsCrisisModalOpen(false)} />
+      )}
     </div>
   );
 };
